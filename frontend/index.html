@@ -1,0 +1,326 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quiz Me - Learn Chinese Vocabulary</title>
+    <!-- Favicon link (optional) -->
+    <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Ctext y='20' font-size='20'%3E🐉%3C/text%3E%3C/svg%3E">
+    <!-- Main stylesheet -->
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+    <div class="app-container">
+        
+        <!-- ================= AUTH WRAPPER (LOGIN/REGISTER) ================= -->
+        <div id="auth-wrapper" class="auth-wrapper">
+            
+            <!-- Alert Box for Auth Messages -->
+            <div id="alert-box" class="alert-box"></div>
+            
+            <!-- Login Card -->
+            <div id="login-card" class="auth-card">
+                <div class="auth-header">
+                    <div class="logo" style="justify-content: center; margin-bottom: 15px;">
+                        <div class="logo-icon">词</div>
+                        <span>Quiz Me</span>
+                    </div>
+                    <h2 class="auth-title">Welcome Back</h2>
+                    <p class="auth-subtitle">Login to continue your Chinese learning journey</p>
+                </div>
+                <form id="login-form">
+                    <div class="form-group">
+                        <label for="login-username" class="form-label">Username</label>
+                        <input type="text" id="login-username" class="form-input" placeholder="Enter username" required autocomplete="username">
+                    </div>
+                    <div class="form-group">
+                        <label for="login-password" class="form-label">Password</label>
+                        <input type="password" id="login-password" class="form-input" placeholder="••••••••" required autocomplete="current-password">
+                    </div>
+                    <button type="submit" class="btn-primary">Sign In</button>
+                </form>
+                <div class="auth-toggle-link">
+                    Don't have an account? <span id="goto-register">Register here</span>
+                </div>
+            </div>
+
+            <!-- Register Card -->
+            <div id="register-card" class="auth-card" style="display: none;">
+                <div class="auth-header">
+                    <div class="logo" style="justify-content: center; margin-bottom: 15px;">
+                        <div class="logo-icon">词</div>
+                        <span>Quiz Me</span>
+                    </div>
+                    <h2 class="auth-title">Create Account</h2>
+                    <p class="auth-subtitle">Register to track your scores and rank up</p>
+                </div>
+                <form id="register-form">
+                    <div class="form-group">
+                        <label for="reg-username" class="form-label">Username</label>
+                        <input type="text" id="reg-username" class="form-input" placeholder="Choose a username" required autocomplete="username">
+                    </div>
+                    <div class="form-group">
+                        <label for="reg-password" class="form-label">Password</label>
+                        <input type="password" id="reg-password" class="form-input" placeholder="••••••••" required autocomplete="new-password">
+                    </div>
+                    <div class="form-group">
+                        <label for="reg-confirm-password" class="form-label">Confirm Password</label>
+                        <input type="password" id="reg-confirm-password" class="form-input" placeholder="••••••••" required autocomplete="new-password">
+                    </div>
+                    <button type="submit" class="btn-primary">Register Account</button>
+                </form>
+                <div class="auth-toggle-link">
+                    Already have an account? <span id="goto-login">Login here</span>
+                </div>
+            </div>
+            
+        </div>
+
+        <!-- ================= MAIN APP SHELL ================= -->
+        <div id="app-shell" style="display: none;">
+            
+            <!-- App Header -->
+            <header>
+                <div class="logo">
+                    <div class="logo-icon">词</div>
+                    <span>Quiz <span>Me</span></span>
+                </div>
+                <div class="user-profile">
+                    <div class="points-pill">
+                        <span>🔥</span>
+                        <span id="header-points">0</span> pts
+                    </div>
+                    <span id="header-username" class="username-tag">Username</span>
+                    <button id="btn-logout" class="btn-logout">Logout</button>
+                </div>
+            </header>
+
+            <!-- Navigation Tab Bar -->
+            <nav class="tabs-navigation">
+                <button id="tab-lessons" class="tab-btn active">Lessons</button>
+                <button id="tab-leaderboard" class="tab-btn">Leaderboard</button>
+                <button id="tab-admin" class="tab-btn" style="display: none;">Admin Panel</button>
+            </nav>
+
+            <!-- Main App Content Sections -->
+            <main>
+                
+                <!-- LESSONS SECTION -->
+                <section id="sec-lessons" class="page-section active">
+                    <h2 class="section-title">Select a Lesson</h2>
+                    <div id="lessons-grid" class="lessons-grid">
+                        <!-- Filled dynamically by app.js -->
+                    </div>
+                </section>
+
+                <!-- LEADERBOARD SECTION -->
+                <section id="sec-leaderboard" class="page-section">
+                    <h2 class="section-title" style="text-align: center; margin-bottom: 25px;">Global Leaderboard</h2>
+                    <div class="leaderboard-container">
+                        <div style="text-align: center; margin-bottom: 20px; color: var(--text-muted);">
+                            Top vocabulary masters ranked by quiz points!
+                        </div>
+                        <div id="leaderboard-list" class="leaderboard-list">
+                            <!-- Filled dynamically by app.js -->
+                        </div>
+                    </div>
+                </section>
+
+                <!-- ADMIN PANEL SECTION -->
+                <section id="sec-admin" class="page-section">
+                    <h2 class="section-title">Admin Management</h2>
+                    
+                    <div class="admin-grid">
+                        
+                        <!-- Col 1: Forms Panel -->
+                        <div style="display: flex; flex-direction: column; gap: 25px;">
+                            
+                            <!-- Add Lesson Panel -->
+                            <div class="admin-panel">
+                                <h3 class="admin-panel-title">Create New Lesson</h3>
+                                <form id="add-lesson-form">
+                                    <div class="form-group">
+                                        <label for="lesson-title" class="form-label">Lesson Title</label>
+                                        <input type="text" id="lesson-title" class="form-input" placeholder="e.g. Weather (天气)" required>
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="lesson-desc" class="form-label">Description</label>
+                                        <input type="text" id="lesson-desc" class="form-input" placeholder="What does this lesson cover?">
+                                    </div>
+                                    <button type="submit" class="btn-primary">Add Lesson</button>
+                                </form>
+                            </div>
+                            
+                            <!-- Add Word Panel -->
+                            <div class="admin-panel">
+                                <h3 class="admin-panel-title">Add Word to Lesson</h3>
+                                <form id="add-word-form">
+                                    <div class="form-group">
+                                        <label for="word-lesson-id" class="form-label">Select Lesson</label>
+                                        <select id="word-lesson-id" class="select-input" required>
+                                            <option value="">-- Select a Lesson --</option>
+                                        </select>
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="word-chinese-input" class="form-label">Chinese Character</label>
+                                        <input type="text" id="word-chinese-input" class="form-input" placeholder="e.g. 早上好" required>
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="word-pinyin-input" class="form-label">Pinyin Spelling</label>
+                                        <input type="text" id="word-pinyin-input" class="form-input" placeholder="e.g. zǎoshang hǎo" required>
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="word-english-input" class="form-label">English Translation (Correct Answer)</label>
+                                        <input type="text" id="word-english-input" class="form-input" placeholder="e.g. Good morning" required>
+                                    </div>
+                                    
+                                    <div class="form-group">
+                                        <label class="form-label">Multiple-Choice Options (Include correct answer)</label>
+                                        <div class="options-input-grid">
+                                            <input type="text" id="word-opt-1" class="form-input" placeholder="Option 1" required>
+                                            <input type="text" id="word-opt-2" class="form-input" placeholder="Option 2" required>
+                                            <input type="text" id="word-opt-3" class="form-input" placeholder="Option 3" required>
+                                            <input type="text" id="word-opt-4" class="form-input" placeholder="Option 4" required>
+                                        </div>
+                                    </div>
+                                    
+                                    <button type="submit" class="btn-primary">Add Word</button>
+                                </form>
+                            </div>
+                            
+                        </div>
+
+                        <!-- Col 2: Tables Panel -->
+                        <div style="display: flex; flex-direction: column; gap: 25px;">
+                            
+                            <!-- Lessons list management -->
+                            <div class="admin-panel">
+                                <h3 class="admin-panel-title">Manage Lessons</h3>
+                                <div class="admin-table-container">
+                                    <table class="admin-table">
+                                        <thead>
+                                            <tr>
+                                                <th>Title</th>
+                                                <th>Description</th>
+                                                <th style="text-align: right;">Action</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="lessons-table-body">
+                                            <!-- filled dynamically -->
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                            
+                            <!-- Words list management -->
+                            <div class="admin-panel">
+                                <h3 class="admin-panel-title">Manage Vocabulary Words</h3>
+                                <div class="admin-table-container">
+                                    <table class="admin-table">
+                                        <thead>
+                                            <tr>
+                                                <th>Chinese</th>
+                                                <th>Pinyin</th>
+                                                <th>English</th>
+                                                <th>Lesson</th>
+                                                <th style="text-align: right;">Action</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="words-table-body">
+                                            <!-- filled dynamically -->
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                            
+                        </div>
+                        
+                    </div>
+                </section>
+                
+            </main>
+            
+        </div>
+
+        <!-- ================= QUIZ GAME OVERLAY (MODAL) ================= -->
+        <div id="quiz-overlay" class="quiz-overlay">
+            <div class="quiz-container">
+                
+                <!-- Quiz Modal Header -->
+                <div class="quiz-header">
+                    <div class="quiz-progress-wrapper">
+                        <div id="quiz-progress-text" class="quiz-progress-text">
+                            <span>Question 1 of 5</span>
+                            <span>Lesson: Greetings</span>
+                        </div>
+                        <div class="quiz-progress-bar">
+                            <div id="quiz-progress-fill" class="quiz-progress-fill"></div>
+                        </div>
+                    </div>
+                    <button id="quiz-close" class="quiz-close" title="Exit Quiz">&times;</button>
+                </div>
+                
+                <!-- Countdown Timer Bar -->
+                <div class="timer-bar-container">
+                    <div id="timer-bar-fill" class="timer-bar-fill"></div>
+                </div>
+
+                <!-- GAMEPLAY SECTION -->
+                <div id="quiz-gameplay">
+                    <!-- Chinese Word Card -->
+                    <div class="question-card">
+                        <div id="word-chinese" class="word-chinese">你好</div>
+                        <div id="word-pinyin" class="word-pinyin">nǐ hǎo</div>
+                    </div>
+                    
+                    <div style="text-align: center; margin-bottom: 15px; color: var(--text-muted); font-size: 0.9rem;">
+                        Choose the correct English translation:
+                    </div>
+
+                    <!-- Choices Buttons Grid -->
+                    <div id="choices-grid" class="choices-grid">
+                        <button class="choice-btn">Hello</button>
+                        <button class="choice-btn">Goodbye</button>
+                        <button class="choice-btn">Thank you</button>
+                        <button class="choice-btn">Sorry</button>
+                    </div>
+                </div>
+
+                <!-- RESULTS / SUMMARY SECTION -->
+                <div id="quiz-result-view" class="quiz-result-view" style="display: none;">
+                    <div id="result-emoji" class="result-emoji">🏆</div>
+                    <h3 id="result-title" class="result-title">Outstanding!</h3>
+                    <p id="result-desc" class="result-desc">You completed the quiz successfully!</p>
+                    
+                    <div class="stats-summary">
+                        <div class="stat-item">
+                            <div id="result-accuracy" class="stat-num">100%</div>
+                            <div class="stat-label">Accuracy</div>
+                        </div>
+                        <div class="stat-item">
+                            <div id="result-points" class="stat-num">+150</div>
+                            <div class="stat-label">Points Gained</div>
+                        </div>
+                    </div>
+                    
+                    <div style="display: flex; gap: 15px; justify-content: center;">
+                        <button id="btn-result-restart" class="btn-primary" style="max-width: 200px;">Try Again</button>
+                        <button onclick="document.getElementById('quiz-close').click();" class="btn-secondary">Back to Lessons</button>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+
+        <!-- App Footer -->
+        <footer>
+            <p>&copy; 2026 Quiz Me. Built with <span>&hearts;</span> for learning Chinese.</p>
+        </footer>
+
+    </div>
+
+    <!-- Load App Logic Script -->
+    <script type="module" src="js/app.js"></script>
+</body>
+</html>
