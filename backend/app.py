@@ -2,7 +2,10 @@ from flask import Flask, request, jsonify
 from flask_cors import CORS
 import sqlite3
 import json
-from database import get_db_connection, hash_password, init_db
+try:
+    from database import get_db_connection, hash_password, init_db
+except ImportError:
+    from .database import get_db_connection, hash_password, init_db
 
 app = Flask(__name__)
 # Enable CORS for all routes so frontend can communicate with backend

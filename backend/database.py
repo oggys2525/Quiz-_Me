@@ -2,8 +2,20 @@ import sqlite3
 import os
 import hashlib
 import json
+import shutil
 
-DB_FILE = os.path.join(os.path.dirname(__file__), 'database.db')
+# If running on Vercel, copy the pre-seeded database to /tmp to make it writable
+if os.environ.get('VERCEL'):
+    DB_FILE = '/tmp/database.db'
+    original_db = os.path.join(os.path.dirname(__file__), 'database.db')
+    if not os.path.exists(DB_FILE) and os.path.exists(original_db):
+        try:
+            shutil.copy2(original_db, DB_FILE)
+            os.chmod(DB_FILE, 0o666)
+        except Exception as e:
+            print(f"Error copying database to /tmp: {e}")
+else:
+    DB_FILE = os.path.join(os.path.dirname(__file__), 'database.db')
 
 def hash_password(password):
     return hashlib.sha256(password.encode('utf-8')).hexdigest()
