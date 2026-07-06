@@ -127,12 +127,25 @@ function setupAuthListeners() {
         const usernameVal = document.getElementById('login-username').value;
         const passwordVal = document.getElementById('login-password').value;
         
+        const btn = elements.loginForm.querySelector('button[type="submit"]');
+        const originalText = btn.textContent;
+        btn.disabled = true;
+        btn.innerHTML = `<span class="spinner"></span> Signing In...`;
+        
         try {
             const user = await login(usernameVal, passwordVal);
-            showAppShell(user);
-            // Reset form
-            elements.loginForm.reset();
+            showAlert('Welcome back! Logging you in...', true);
+            
+            setTimeout(() => {
+                showAppShell(user);
+                elements.loginForm.reset();
+                btn.disabled = false;
+                btn.textContent = originalText;
+                hideAlert();
+            }, 1000);
         } catch (err) {
+            btn.disabled = false;
+            btn.textContent = originalText;
             showAlert(err.message || 'Invalid username/email or password.');
         }
     });
@@ -152,11 +165,25 @@ function setupAuthListeners() {
             return;
         }
         
+        const btn = elements.registerForm.querySelector('button[type="submit"]');
+        const originalText = btn.textContent;
+        btn.disabled = true;
+        btn.innerHTML = `<span class="spinner"></span> Registering...`;
+        
         try {
             const user = await register(emailVal, usernameVal, passwordVal);
-            showAppShell(user);
-            elements.registerForm.reset();
+            showAlert('Registration successful! Logging you in...', true);
+            
+            setTimeout(() => {
+                showAppShell(user);
+                elements.registerForm.reset();
+                btn.disabled = false;
+                btn.textContent = originalText;
+                hideAlert();
+            }, 1000);
         } catch (err) {
+            btn.disabled = false;
+            btn.textContent = originalText;
             showAlert(err.message || 'Registration failed.');
         }
     });
@@ -219,7 +246,13 @@ function updateHeader(user) {
 }
 
 function showAlert(message, isSuccess = false) {
-    elements.alertBox.textContent = message;
+    elements.alertBox.innerHTML = `${isSuccess ? '✅' : '⚠️'} ${message}`;
+    
+    // Reset shake animation for consecutive error alerts
+    elements.alertBox.style.animation = 'none';
+    elements.alertBox.offsetHeight; // Trigger reflow to apply styling reset
+    elements.alertBox.style.animation = isSuccess ? 'none' : 'shake 0.4s ease';
+    
     elements.alertBox.style.display = 'block';
     if (isSuccess) {
         elements.alertBox.classList.add('success');
@@ -230,6 +263,7 @@ function showAlert(message, isSuccess = false) {
 
 function hideAlert() {
     elements.alertBox.style.display = 'none';
+    elements.alertBox.style.animation = 'none';
 }
 
 /* Tabs Switching Handlers */
