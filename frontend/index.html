@@ -31,8 +31,8 @@
                 </div>
                 <form id="login-form">
                     <div class="form-group">
-                        <label for="login-username" class="form-label">Username</label>
-                        <input type="text" id="login-username" class="form-input" placeholder="Enter username" required autocomplete="username">
+                        <label for="login-username" class="form-label">Email / Username</label>
+                        <input type="text" id="login-username" class="form-input" placeholder="email@example.com or username" required autocomplete="username">
                     </div>
                     <div class="form-group">
                         <label for="login-password" class="form-label">Password</label>
@@ -56,6 +56,10 @@
                     <p class="auth-subtitle">Register to track your scores and rank up</p>
                 </div>
                 <form id="register-form">
+                    <div class="form-group">
+                        <label for="reg-email" class="form-label">Email Address</label>
+                        <input type="email" id="reg-email" class="form-input" placeholder="email@example.com" required autocomplete="email">
+                    </div>
                     <div class="form-group">
                         <label for="reg-username" class="form-label">Username</label>
                         <input type="text" id="reg-username" class="form-input" placeholder="Choose a username" required autocomplete="username">
@@ -98,7 +102,7 @@
 
             <!-- Navigation Tab Bar -->
             <nav class="tabs-navigation">
-                <button id="tab-lessons" class="tab-btn active">Lessons</button>
+                <button id="tab-lessons" class="tab-btn active">Start Quiz</button>
                 <button id="tab-leaderboard" class="tab-btn">Leaderboard</button>
                 <button id="tab-admin" class="tab-btn" style="display: none;">Admin Panel</button>
             </nav>
@@ -108,10 +112,27 @@
                 
                 <!-- LESSONS SECTION -->
                 <section id="sec-lessons" class="page-section active">
-                    <h2 class="section-title">Select a Lesson</h2>
-                    <div id="lessons-grid" class="lessons-grid">
-                        <!-- Filled dynamically by app.js -->
+                    
+                    <!-- Topics Container (Categories + Grid) -->
+                    <div id="topics-container">
+                        <div id="category-tabs-container" class="category-tabs-container"></div>
+                        <div id="lessons-grid" class="lessons-grid">
+                            <!-- Filled dynamically by app.js -->
+                        </div>
                     </div>
+                    
+                    <!-- Sub-Lessons List Container (Initially Hidden) -->
+                    <div id="sub-lessons-container" style="display: none;">
+                        <div class="sub-lessons-header">
+                            <button id="btn-back-to-topics" class="btn-back-arrow">&lsaquo;</button>
+                            <span id="sub-lessons-topic-emoji" class="topic-header-emoji">🍎</span>
+                            <h3 id="sub-lessons-topic-title" class="topic-header-title">Fruit ផ្លែឈើ</h3>
+                        </div>
+                        <div id="sub-lessons-list" class="sub-lessons-list">
+                            <!-- Lesson rows will be filled dynamically -->
+                        </div>
+                    </div>
+                    
                 </section>
 
                 <!-- LEADERBOARD SECTION -->
@@ -249,7 +270,7 @@
                 
                 <!-- Quiz Modal Header -->
                 <div class="quiz-header">
-                    <div class="quiz-progress-wrapper">
+                    <div id="quiz-progress-wrapper" class="quiz-progress-wrapper" style="display: none;">
                         <div id="quiz-progress-text" class="quiz-progress-text">
                             <span>Question 1 of 5</span>
                             <span>Lesson: Greetings</span>
@@ -262,19 +283,47 @@
                 </div>
                 
                 <!-- Countdown Timer Bar -->
-                <div class="timer-bar-container">
+                <div id="timer-bar-container" class="timer-bar-container" style="display: none;">
                     <div id="timer-bar-fill" class="timer-bar-fill"></div>
                 </div>
 
+                <!-- MODE SELECTION SECTION -->
+                <div id="quiz-mode-select" class="quiz-mode-select">
+                    <h3 class="quiz-mode-title">ជ្រើសរើសរបៀបលេង / Choose Quiz Mode</h3>
+                    <div class="mode-buttons-grid">
+                        <button id="btn-mode-qa" class="mode-select-btn">
+                            <span class="mode-icon">❓</span>
+                            <div class="mode-info">
+                                <span class="mode-name">សំណួរចម្លើយ</span>
+                                <span class="mode-desc">Multiple Choice Q&A</span>
+                            </div>
+                        </button>
+                        <button id="btn-mode-blank" class="mode-select-btn">
+                            <span class="mode-icon">✍️</span>
+                            <div class="mode-info">
+                                <span class="mode-name">បំពេញពាក្យ</span>
+                                <span class="mode-desc">Fill in the Blank</span>
+                            </div>
+                        </button>
+                        <button id="btn-mode-arrange" class="mode-select-btn">
+                            <span class="mode-icon">🧩</span>
+                            <div class="mode-info">
+                                <span class="mode-name">រៀបពាក្យ</span>
+                                <span class="mode-desc">Arrange Chinese characters</span>
+                            </div>
+                        </button>
+                    </div>
+                </div>
+
                 <!-- GAMEPLAY SECTION -->
-                <div id="quiz-gameplay">
+                <div id="quiz-gameplay" style="display: none;">
                     <!-- Chinese Word Card -->
                     <div class="question-card">
                         <div id="word-chinese" class="word-chinese">你好</div>
                         <div id="word-pinyin" class="word-pinyin">nǐ hǎo</div>
                     </div>
                     
-                    <div style="text-align: center; margin-bottom: 15px; color: var(--text-muted); font-size: 0.9rem;">
+                    <div id="quiz-instruction" style="text-align: center; margin-bottom: 15px; color: var(--text-muted); font-size: 0.9rem;">
                         Choose the correct English translation:
                     </div>
 
@@ -284,6 +333,16 @@
                         <button class="choice-btn">Goodbye</button>
                         <button class="choice-btn">Thank you</button>
                         <button class="choice-btn">Sorry</button>
+                    </div>
+
+                    <!-- Arrange Mode UI Containers -->
+                    <div id="arrange-container" style="display: none; flex-direction: column; align-items: center; gap: 20px; margin-bottom: 25px;">
+                        <div id="arrange-slots" class="arrange-slots">
+                            <!-- Answer slots like [ 苹 ] [ _ ] -->
+                        </div>
+                        <div id="arrange-scrambled" class="arrange-scrambled">
+                            <!-- Scrambled buttons like [ 果 ] [ 苹 ] -->
+                        </div>
                     </div>
                 </div>
 

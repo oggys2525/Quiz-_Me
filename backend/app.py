@@ -19,12 +19,15 @@ def is_admin(req):
 @app.route('/api/auth/register', methods=['POST'])
 def register():
     data = request.json
-    if not data or not data.get('username') or not data.get('password'):
-        return jsonify({'error': 'Username and password are required'}), 400
+    if not data or not data.get('email') or not data.get('username') or not data.get('password'):
+        return jsonify({'error': 'Email, username, and password are required'}), 400
     
-    username = data['username'].strip()
+    email = data['email'].strip().lower()
+    username = data['username'].strip().lower()
     password = data['password']
     
+    if '@' not in email or '.' not in email:
+        return jsonify({'error': 'Invalid email address format'}), 400
     if len(username) < 3:
         return jsonify({'error': 'Username must be at least 3 characters long'}), 400
     if len(password) < 4:
@@ -40,41 +43,47 @@ def register():
         user_count = cursor.fetchone()[0]
         role = 'admin' if user_count == 0 else 'user'
         
-        cursor.execute("INSERT INTO users (username, password, role, points) VALUES (?, ?, ?, ?)",
-                       (username, hashed_pw, role, 0))
+        cursor.execute("INSERT INTO users (email, username, password, role, points) VALUES (?, ?, ?, ?, ?)",
+                       (email, username, hashed_pw, role, 0))
         conn.commit()
         
         # Fetch the newly created user
-        cursor.execute("SELECT id, username, role, points FROM users WHERE username = ?", (username,))
+        cursor.execute("SELECT id, email, username, role, points FROM users WHERE username = ?", (username,))
         user = cursor.fetchone()
         
         return jsonify({
             'message': 'Registration successful',
             'user': {
                 'id': user['id'],
+                'email': user['email'],
                 'username': user['username'],
                 'role': user['role'],
                 'points': user['points']
             }
         }), 201
-    except sqlite3.IntegrityError:
-        return jsonify({'error': 'Username already exists'}), 400
+    except sqlite3.IntegrityError as e:
+        # Check which constraint failed
+        error_msg = str(e)
+        if 'email' in error_msg:
+            return jsonify({'error': 'Email already registered'}), 400
+        else:
+            return jsonify({'error': 'Username already exists'}), 400
     finally:
         conn.close()
 
 @app.route('/api/auth/login', methods=['POST'])
 def login():
     data = request.json
-    if not data or not data.get('username') or not data.get('password'):
-        return jsonify({'error': 'Username and password are required'}), 400
+    if not data or not data.get('username_or_email') or not data.get('password'):
+        return jsonify({'error': 'Username/Email and password are required'}), 400
     
-    username = data['username'].strip()
+    login_id = data['username_or_email'].strip().lower()
     password = data['password']
     
     conn = get_db_connection()
     cursor = conn.cursor()
     
-    cursor.execute("SELECT id, username, password, role, points FROM users WHERE username = ?", (username,))
+    cursor.execute("SELECT id, email, username, password, role, points FROM users WHERE username = ? OR email = ?", (login_id, login_id))
     user = cursor.fetchone()
     conn.close()
     
@@ -83,13 +92,14 @@ def login():
             'message': 'Login successful',
             'user': {
                 'id': user['id'],
+                'email': user['email'],
                 'username': user['username'],
                 'role': user['role'],
                 'points': user['points']
             }
         }), 200
     else:
-        return jsonify({'error': 'Invalid username or password'}), 401
+        return jsonify({'error': 'Invalid username/email or password'}), 401
 
 @app.route('/api/lessons', methods=['GET'])
 def get_lessons():
@@ -210,6 +220,26 @@ def delete_word(word_id):
     conn.commit()
     conn.close()
     return jsonify({'message': 'Word deleted successfully'}), 200
+
+@app.route('/api/users/<int:user_id>', methods=['GET'])
+def get_user_details(user_id):
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    cursor.execute("SELECT id, email, username, role, points FROM users WHERE id = ?", (user_id,))
+    user = cursor.fetchone()
+    conn.close()
+    if user:
+        return jsonify({
+            'user': {
+                'id': user['id'],
+                'email': user['email'],
+                'username': user['username'],
+                'role': user['role'],
+                'points': user['points']
+            }
+        }), 200
+    else:
+        return jsonify({'error': 'User not found'}), 404
 
 @app.route('/api/users/<int:user_id>/points', methods=['POST'])
 def update_points(user_id):

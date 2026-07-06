@@ -44,6 +44,7 @@ def init_db(force=False):
     cursor.execute('''
     CREATE TABLE IF NOT EXISTS users (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
+        email TEXT UNIQUE NOT NULL,
         username TEXT UNIQUE NOT NULL,
         password TEXT NOT NULL,
         role TEXT NOT NULL DEFAULT 'user',
@@ -83,18 +84,18 @@ def seed_data(conn):
     cursor = conn.cursor()
 
     # Check if admin user exists, if not create
-    cursor.execute("SELECT * FROM users WHERE username = 'admin'")
+    cursor.execute("SELECT * FROM users WHERE username = 'admin' OR email = 'admin@quiz.me'")
     if not cursor.fetchone():
         admin_pass = hash_password("admin123")
-        cursor.execute("INSERT INTO users (username, password, role, points) VALUES (?, ?, ?, ?)",
-                       ("admin", admin_pass, "admin", 0))
+        cursor.execute("INSERT INTO users (email, username, password, role, points) VALUES (?, ?, ?, ?, ?)",
+                       ("admin@quiz.me", "admin", admin_pass, "admin", 0))
 
     # Check if standard user exists
-    cursor.execute("SELECT * FROM users WHERE username = 'user'")
+    cursor.execute("SELECT * FROM users WHERE username = 'user' OR email = 'user@quiz.me'")
     if not cursor.fetchone():
         user_pass = hash_password("user123")
-        cursor.execute("INSERT INTO users (username, password, role, points) VALUES (?, ?, ?, ?)",
-                       ("user", user_pass, "user", 100))
+        cursor.execute("INSERT INTO users (email, username, password, role, points) VALUES (?, ?, ?, ?, ?)",
+                       ("user@quiz.me", "user", user_pass, "user", 100))
 
     # Check if lessons exist, if not create default lessons
     cursor.execute("SELECT COUNT(*) FROM lessons")

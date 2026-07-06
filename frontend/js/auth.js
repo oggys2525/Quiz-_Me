@@ -19,12 +19,12 @@ export function clearSessionUser() {
     localStorage.removeItem('quiz_me_user');
 }
 
-export async function login(username, password) {
+export async function login(usernameOrEmail, password) {
     try {
         const response = await fetch(`${CONFIG.API_URL}/auth/login`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ username, password })
+            body: JSON.stringify({ username_or_email: usernameOrEmail, password })
         });
         
         const data = await response.json();
@@ -40,12 +40,12 @@ export async function login(username, password) {
     }
 }
 
-export async function register(username, password) {
+export async function register(email, username, password) {
     try {
         const response = await fetch(`${CONFIG.API_URL}/auth/register`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ username, password })
+            body: JSON.stringify({ email, username, password })
         });
         
         const data = await response.json();
