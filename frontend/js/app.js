@@ -245,25 +245,35 @@ function updateHeader(user) {
     }
 }
 
+let alertTimeout = null;
+
 function showAlert(message, isSuccess = false) {
     elements.alertBox.innerHTML = `${isSuccess ? '✅' : '⚠️'} ${message}`;
-    
-    // Reset shake animation for consecutive error alerts
-    elements.alertBox.style.animation = 'none';
-    elements.alertBox.offsetHeight; // Trigger reflow to apply styling reset
-    elements.alertBox.style.animation = isSuccess ? 'none' : 'shake 0.4s ease';
-    
     elements.alertBox.style.display = 'block';
+    
+    // Reset classes
+    elements.alertBox.classList.remove('success', 'shake');
+    elements.alertBox.style.animation = 'none';
+    elements.alertBox.offsetHeight; // Force DOM reflow
+    
     if (isSuccess) {
         elements.alertBox.classList.add('success');
+        elements.alertBox.style.animation = 'toast-in 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275)';
     } else {
-        elements.alertBox.classList.remove('success');
+        elements.alertBox.classList.add('shake');
+        elements.alertBox.style.animation = 'toast-in 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275), toast-shake 0.4s ease';
     }
+    
+    // Auto-dismiss after 3.5 seconds
+    if (alertTimeout) clearTimeout(alertTimeout);
+    alertTimeout = setTimeout(() => {
+        hideAlert();
+    }, 3500);
 }
 
 function hideAlert() {
     elements.alertBox.style.display = 'none';
-    elements.alertBox.style.animation = 'none';
+    elements.alertBox.classList.remove('shake', 'success');
 }
 
 /* Tabs Switching Handlers */
