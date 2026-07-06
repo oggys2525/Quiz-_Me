@@ -104,7 +104,10 @@ def seed_data(conn):
             ("Greetings (问候)", "Learn basic Chinese greetings like Hello, Goodbye, and Thank you."),
             ("Numbers (数字)", "Learn to count from 1 to 10 in Chinese characters and Pinyin."),
             ("Food & Drink (饮食)", "Essential vocabulary for ordering and talking about food."),
-            ("Fruits (水果)", "Common Chinese terms for delicious fruits."),
+            ("Fruits Part 1 (水果 ភាគ ១)", "Learn Chinese terms for fruits, Part 1 (Words 1-17) with Khmer meanings."),
+            ("Fruits Part 2 (水果 ភាគ ២)", "Learn Chinese terms for fruits, Part 2 (Words 18-34) with Khmer meanings."),
+            ("Fruits Part 3 (水果 ភាគ ៣)", "Learn Chinese terms for fruits, Part 3 (Words 35-51) with Khmer meanings."),
+            ("Fruits Part 4 (水果 ភាគ ៤)", "Learn Chinese terms for fruits, Part 4 (Words 52-67) with Khmer meanings."),
             ("Sports (运动)", "Vocabulary about sports, exercises, and physical activities."),
             ("Colors (颜色)", "Basic colors and shades in Chinese characters and pinyin."),
             ("Animals (动物)", "Learn how to say common pets and wild animals in Chinese.")
@@ -147,16 +150,104 @@ def seed_data(conn):
             (food_id, "苹果", "píngguǒ", "apple", json.dumps(["apple", "banana", "orange", "grape"]))
         ]
 
-        # Insert Words for Lesson 4: Fruits (水果)
-        fruits_id = lessons_map["Fruits (水果)"]
-        fruits_words = [
-            (fruits_id, "苹果", "píngguǒ", "apple", json.dumps(["apple", "banana", "orange", "grape"])),
-            (fruits_id, "香蕉", "xiāngjiāo", "banana", json.dumps(["banana", "apple", "mango", "pear"])),
-            (fruits_id, "西瓜", "xīguā", "watermelon", json.dumps(["watermelon", "melon", "papaya", "pineapple"])),
-            (fruits_id, "葡萄", "pútáo", "grape", json.dumps(["grape", "cherry", "peach", "strawberry"])),
-            (fruits_id, "草莓", "cǎoméi", "strawberry", json.dumps(["strawberry", "lemon", "blueberry", "raspberry"])),
-            (fruits_id, "橙子", "chéngzi", "orange", json.dumps(["orange", "lemon", "apple", "lime"]))
+        # Fruits List 1 to 67
+        fruits_list = [
+            {"chinese": "香蕉", "pinyin": "xiāng jiāo", "khmer": "ចេក", "english": "Banana"},
+            {"chinese": "帝王蕉", "pinyin": "dì wáng jiāo", "khmer": "ចេកអំបូង", "english": "Lady Finger Banana"},
+            {"chinese": "西贡蕉", "pinyin": "xī gòng jiāo", "khmer": "ចេកអង្កាំ", "english": "Saigon Banana"},
+            {"chinese": "苹果", "pinyin": "píng guǒ", "khmer": "ផ្លែប៉ោម", "english": "Apple"},
+            {"chinese": "西瓜", "pinyin": "xī guā", "khmer": "ឪឡឹក", "english": "Watermelon"},
+            {"chinese": "草莓", "pinyin": "cǎo mei", "khmer": "ផ្លែស្ត្របឺរី", "english": "Strawberry"},
+            {"chinese": "橘子", "pinyin": "jú zi", "khmer": "ក្រូចពោធិ៍សាត់", "english": "Mandarin Orange"},
+            {"chinese": "番石榴", "pinyin": "fān shí liú", "khmer": "ត្របែក", "english": "Guava"},
+            {"chinese": "猕猴桃", "pinyin": "mí hóu táo", "khmer": "គីវី", "english": "Kiwi Fruit"},
+            {"chinese": "牛油果", "pinyin": "niú yóu guǒ", "khmer": "អាវ៉ូកាដូ", "english": "Avocado"},
+            {"chinese": "荔枝", "pinyin": "lì zhī", "khmer": "លីចី", "english": "Lychee"},
+            {"chinese": "火龙果", "pinyin": "huǒ lóng guǒ", "khmer": "ផ្លែស្រកានាគ", "english": "Dragon Fruit"},
+            {"chinese": "樱桃", "pinyin": "yīng táo", "khmer": "ផ្លែឆឺរី", "english": "Cherry"},
+            {"chinese": "黑莓", "pinyin": "hēi méi", "khmer": "ប្លាក់បឺរី", "english": "Blackberry"},
+            {"chinese": "红毛丹", "pinyin": "hóng máo dān", "khmer": "រំដេង (Rambutan)", "english": "Rambutan"},
+            {"chinese": "椰枣", "pinyin": "yē zǎo", "khmer": "ផ្លែល្មើ", "english": "Date"},
+            {"chinese": "练舞", "pinyin": "liàn wǔ", "khmer": "សាលាក់ (Salak/Snake Fruit) (តាមសៀវភៅ)", "english": "Salak (Snake Fruit)"},
+            {"chinese": "木瓜", "pinyin": "mù guā", "khmer": "ល្ហុង", "english": "Papaya"},
+            {"chinese": "石榴", "pinyin": "shí liú", "khmer": "ទទឹម", "english": "Pomegranate"},
+            {"chinese": "菠萝蜜", "pinyin": "bō luó mì", "khmer": "ខ្នុរ", "english": "Jackfruit"},
+            {"chinese": "番荔枝 / 释迦果", "pinyin": "fān lì zhī / shì jiā guǒ", "khmer": "ទៀប", "english": "Sugar Apple (Custard Apple)"},
+            {"chinese": "牛奶果", "pinyin": "niú nǎi guǒ", "khmer": "ផ្លែទឹកដោះគោ", "english": "Milk Fruit / Star Apple"},
+            {"chinese": "糖棕果", "pinyin": "táng zōng guǒ", "khmer": "ត្នោត", "english": "Sugar Palm Fruit"},
+            {"chinese": "椰子", "pinyin": "yē zi", "khmer": "ដូង", "english": "Coconut"},
+            {"chinese": "柿子", "pinyin": "shì zi", "khmer": "កាកី", "english": "Persimmon"},
+            {"chinese": "桃子", "pinyin": "táo zi", "khmer": "ផ្លែប៉េស", "english": "Peach"},
+            {"chinese": "桑葚", "pinyin": "sāng shèn", "khmer": "មាល់បឺរី", "english": "Mulberry"},
+            {"chinese": "黄金苹果", "pinyin": "huáng jīn píng guǒ", "khmer": "ផ្លែប៉ោមមាស", "english": "Golden Apple"},
+            {"chinese": "腰果", "pinyin": "yāo guǒ", "khmer": "ស្វាយចន្ទី", "english": "Cashew Apple"},
+            {"chinese": "哈密果", "pinyin": "hā mì guǒ", "khmer": "ត្រសក់ស្រូវ (ផ្អែម)", "english": "Hami Melon"},
+            {"chinese": "木奶果", "pinyin": "mù nǎi guǒ", "khmer": "ម៉ាហ្គោស្ទីន", "english": "Mangosteen"},
+            {"chinese": "玛丽安李子", "pinyin": "mǎ lì ān lǐ zi", "khmer": "ម៉ារៀនផ្លាំ", "english": "Marian Plum"},
+            {"chinese": "海枣", "pinyin": "hǎi zǎo", "khmer": "ល្មើសមុទ្រ", "english": "Sea Date"},
+            {"chinese": "星星锅 / 杨桃", "pinyin": "xīng xīng guǒ / yáng táo", "khmer": "ផ្លែស្ពឺ", "english": "Star Fruit"},
+            {"chinese": "蛇皮果", "pinyin": "shé pí guǒ", "khmer": "សាឡាក់ (ស្នេកហ្វ្រូត)", "english": "Snake Fruit (Salak)"},
+            {"chinese": "山陀果", "pinyin": "shān tuó guǒ", "khmer": "សន្តោល", "english": "Santol"},
+            {"chinese": "百香果", "pinyin": "bǎi xiāng guǒ", "khmer": "ផាសិនហ្វ្រូត", "english": "Passion Fruit"},
+            {"chinese": "芒果", "pinyin": "máng guǒ", "khmer": "ស្វាយ", "english": "Mango"},
+            {"chinese": "榴莲", "pinyin": "liú lián", "khmer": "ទុរេន", "english": "Durian"},
+            {"chinese": "葡萄", "pinyin": "pú táo", "khmer": "ទំពាំងបាយជូរ", "english": "Grape"},
+            {"chinese": "菠萝", "pinyin": "bō luó", "khmer": "ម្នាស់", "english": "Pineapple"},
+            {"chinese": "人心果", "pinyin": "rén xīn guǒ", "khmer": "សាប៉ូឌីឡា", "english": "Sapodilla"},
+            {"chinese": "龙贡果", "pinyin": "lóng gòng guǒ", "khmer": "ឡងកុង", "english": "Longkong (Langsat)"},
+            {"chinese": "红毛榴莲", "pinyin": "hóng máo liú lián", "khmer": "ពូឡាសាន (Pulasan)", "english": "Pulasan"},
+            {"chinese": "山竹", "pinyin": "shān zhú", "khmer": "មង្ឃុត", "english": "Mangosteen"},
+            {"chinese": "柚子", "pinyin": "yòu zi", "khmer": "ក្រូចថ្លុង", "english": "Pomelo"},
+            {"chinese": "三敛", "pinyin": "sān liǎn", "khmer": "ម្កាក់", "english": "Ceylon Olive"},
+            {"chinese": "面包果", "pinyin": "miàn bāo guǒ", "khmer": "ផ្លែនំប៉័ង", "english": "Breadfruit"},
+            {"chinese": "栗子", "pinyin": "lì zi", "khmer": "គ្រាប់ដើមឈែសណាត់", "english": "Chestnut"},
+            {"chinese": "青莲子", "pinyin": "qīng lián zǐ", "khmer": "គ្រាប់ឈូក", "english": "Fresh Lotus Seed"},
+            {"chinese": "无花果", "pinyin": "wú huā guǒ", "khmer": "ផ្លែល្វា", "english": "Fig"},
+            {"chinese": "木橘", "pinyin": "mù jú", "khmer": "ក្រូច", "english": "Orange"},
+            {"chinese": "山榄", "pinyin": "shān lǎn", "khmer": "អំពិលផ្អែម", "english": "Black Olive Fruit"},
+            {"chinese": "诺丽果", "pinyin": "nuò lì guǒ", "khmer": "ណូនី", "english": "Noni Fruit"},
+            {"chinese": "团花果", "pinyin": "tuán huā guǒ", "khmer": "មៀន", "english": "Longan"},
+            {"chinese": "罗望果 / 酸豆", "pinyin": "luó wàng guǒ / suān dòu", "khmer": "អំពិលទុំ", "english": "Tamarind"},
+            {"chinese": "西印度酸栗", "pinyin": "xī yìn dù suān lì", "khmer": "កន្ទួត", "english": "Otaheite Gooseberry"},
+            {"chinese": "仙桃果 / 蛋黄果", "pinyin": "xiān táo guǒ / dàn huáng guǒ", "khmer": "កន្លង់ (Canistel)", "english": "Egg Fruit (Canistel)"},
+            {"chinese": "木苹果", "pinyin": "mù píng guǒ", "khmer": "ម្ដិះ", "english": "Wood Apple"},
+            {"chinese": "青枣", "pinyin": "qīng zǎo", "khmer": "ពុទ្រា", "english": "Green Jujube"},
+            {"chinese": "六月李", "pinyin": "liù yuè lǐ", "khmer": "ផ្លែព្រូន", "english": "June Plum"},
+            {"chinese": "牛蹄豆", "pinyin": "niú tí dòu", "khmer": "អំពិលបារាំង", "english": "Manila Tamarind"},
+            {"chinese": "扎恩果", "pinyin": "zhā ēn guǒ", "khmer": "ជម្ពូ", "english": "Rose Apple (Wax Apple)"},
+            {"chinese": "刺篱子", "pinyin": "cì lí zi", "khmer": "រ៉ាស្បឺរី", "english": "Raspberry"},
+            {"chinese": "黑市", "pinyin": "hēi shì", "khmer": "បឺរីខ្មៅ", "english": "Blackcurrant"},
+            {"chinese": "黑茶蔗子", "pinyin": "hēi chá páo zi", "khmer": "ផ្លែចាប៉ាង", "english": "Jaboticaba"},
+            {"chinese": "龙眼", "pinyin": "lóng yǎn", "khmer": "មៀន", "english": "Longan"}
         ]
+
+        import random
+        rng = random.Random(42)
+        all_answers = [f"{item['english']} ({item['khmer']})" for item in fruits_list]
+
+        def get_fruit_words_for_range(lesson_id, items_subset):
+            words = []
+            for f in items_subset:
+                correct_ans = f"{f['english']} ({f['khmer']})"
+                # Exclude correct answer for distractors
+                distractor_pool = [ans for ans in all_answers if ans != correct_ans]
+                # Take 3 random options
+                distractors = rng.sample(distractor_pool, 3)
+                options = [correct_ans] + distractors
+                rng.shuffle(options)
+                words.append((lesson_id, f['chinese'], f['pinyin'], correct_ans, json.dumps(options)))
+            return words
+
+        # Get Lesson IDs for Fruits Parts
+        f1_id = lessons_map["Fruits Part 1 (水果 ភាគ ១)"]
+        f2_id = lessons_map["Fruits Part 2 (水果 ភាគ ២)"]
+        f3_id = lessons_map["Fruits Part 3 (水果 ភាគ ៣)"]
+        f4_id = lessons_map["Fruits Part 4 (水果 ភាគ ៤)"]
+
+        fruits_part1_words = get_fruit_words_for_range(f1_id, fruits_list[0:17])
+        fruits_part2_words = get_fruit_words_for_range(f2_id, fruits_list[17:34])
+        fruits_part3_words = get_fruit_words_for_range(f3_id, fruits_list[34:51])
+        fruits_part4_words = get_fruit_words_for_range(f4_id, fruits_list[51:67])
 
         # Insert Words for Lesson 5: Sports (运动)
         sports_id = lessons_map["Sports (运动)"]
@@ -191,7 +282,9 @@ def seed_data(conn):
             (animals_id, "兔子", "tùzi", "rabbit", json.dumps(["rabbit", "hamster", "squirrel", "deer"]))
         ]
 
-        all_words = greetings_words + numbers_words + food_words + fruits_words + sports_words + colors_words + animals_words
+        all_words = (greetings_words + numbers_words + food_words + 
+                     fruits_part1_words + fruits_part2_words + fruits_part3_words + fruits_part4_words + 
+                     sports_words + colors_words + animals_words)
         cursor.executemany("INSERT INTO words (lesson_id, chinese, pinyin, english, options) VALUES (?, ?, ?, ?, ?)", all_words)
         conn.commit()
 
