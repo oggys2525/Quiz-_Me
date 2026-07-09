@@ -1,0 +1,345 @@
+/* Auth Screen Layout */
+.auth-wrapper {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-grow: 1;
+    padding: 60px 20px;
+    z-index: 10;
+    position: relative;
+    overflow-y: auto;
+    max-height: 100vh;
+}
+
+/* Stunning glowing backdrop strictly for auth page */
+.auth-wrapper::before {
+    content: '';
+    position: absolute;
+    width: 250px;
+    height: 250px;
+    background: radial-gradient(circle, rgba(255, 42, 116, 0.25) 0%, transparent 70%);
+    z-index: -1;
+    filter: blur(50px);
+    animation: pulseGlow 6s ease-in-out infinite alternate;
+}
+
+.auth-card {
+    background: rgba(18, 20, 29, 0.75);
+    backdrop-filter: blur(24px);
+    -webkit-backdrop-filter: blur(24px);
+    border: 1px solid rgba(255, 42, 116, 0.2);
+    border-radius: var(--radius-lg);
+    width: 100%;
+    max-width: 440px;
+    padding: 45px 40px;
+    box-shadow: 
+        0 25px 60px -10px rgba(0, 0, 0, 0.8),
+        0 0 50px -10px rgba(255, 42, 116, 0.15),
+        inset 0 1px 1px rgba(255, 255, 255, 0.1);
+    position: relative;
+    overflow: hidden;
+    animation: zoomIn 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+    transition: var(--transition-normal);
+}
+
+/* Subtle glowing border animation on card hover */
+.auth-card:hover {
+    border-color: rgba(255, 42, 116, 0.4);
+    box-shadow: 
+        0 30px 70px -10px rgba(0, 0, 0, 0.9),
+        0 0 60px -5px rgba(255, 42, 116, 0.25),
+        inset 0 1px 1px rgba(255, 255, 255, 0.15);
+}
+
+.auth-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 200%;
+    height: 3px;
+    background: linear-gradient(90deg, 
+        transparent, 
+        rgba(255, 42, 116, 0.8), 
+        #ff85a7, 
+        rgba(255, 42, 116, 0.8), 
+        transparent
+    );
+    animation: shimmer 4s infinite linear;
+}
+
+@keyframes shimmer {
+    0% { left: -150%; }
+    50% { left: 50%; }
+    100% { left: 50%; }
+}
+
+.auth-header {
+    text-align: center;
+    margin-bottom: 35px;
+}
+
+.auth-header .logo {
+    justify-content: center;
+    margin-bottom: 20px;
+}
+
+.auth-header .logo-icon {
+    font-size: 1.5rem;
+    animation: pulseLogo 3s infinite ease-in-out;
+}
+
+@keyframes pulseLogo {
+    0%, 100% {
+        transform: scale(1);
+        box-shadow: 0 4px 10px rgba(255, 42, 116, 0.3);
+    }
+    50% {
+        transform: scale(1.06);
+        box-shadow: 0 4px 20px rgba(255, 42, 116, 0.6);
+    }
+}
+
+.auth-title {
+    font-size: 2rem;
+    font-weight: 800;
+    margin-bottom: 8px;
+    letter-spacing: -0.5px;
+    background: linear-gradient(135deg, #ffffff 40%, #ffa6c5 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    text-shadow: 0 2px 10px rgba(255, 42, 116, 0.15);
+}
+
+.auth-subtitle {
+    color: var(--text-muted);
+    font-size: 0.95rem;
+    line-height: 1.4;
+}
+
+/* Premium Form Group and Inputs in Login */
+.auth-card .form-group {
+    margin-bottom: 24px;
+}
+
+.auth-card .form-label {
+    font-size: 0.75rem;
+    font-weight: 700;
+    color: var(--text-muted);
+    letter-spacing: 1px;
+    margin-bottom: 8px;
+    transition: var(--transition-fast);
+}
+
+.auth-card .form-input {
+    background: rgba(7, 8, 13, 0.6);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    color: var(--text-white);
+    padding: 15px 18px;
+    border-radius: var(--radius-sm);
+    font-size: 0.95rem;
+    outline: none;
+    transition: var(--transition-normal);
+}
+
+.auth-card .form-input:focus {
+    border-color: var(--pink-primary);
+    background: rgba(7, 8, 13, 0.8);
+    box-shadow: 
+        0 0 0 1px var(--pink-primary),
+        0 0 15px rgba(255, 42, 116, 0.2);
+}
+
+.auth-card .form-group:focus-within .form-label {
+    color: var(--pink-primary);
+    transform: translateY(-2px);
+    text-shadow: 0 0 8px rgba(255, 42, 116, 0.3);
+}
+
+/* Submit Button in Login */
+.auth-card .btn-primary {
+    width: 100%;
+    margin-top: 10px;
+    font-size: 1.05rem;
+    padding: 16px;
+    border-radius: var(--radius-sm);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    font-weight: 800;
+}
+
+/* Toggle link to register */
+.auth-toggle-link {
+    text-align: center;
+    margin-top: 30px;
+    font-size: 0.9rem;
+    color: var(--text-muted);
+}
+
+.auth-toggle-link span {
+    color: var(--pink-primary);
+    cursor: pointer;
+    font-weight: 800;
+    transition: var(--transition-fast);
+    padding-bottom: 2px;
+    border-bottom: 1px solid transparent;
+}
+
+.auth-toggle-link span:hover {
+    color: var(--pink-hover);
+    border-color: var(--pink-hover);
+}
+
+/* Input with icon wrapper */
+.input-with-icon {
+    position: relative;
+    display: flex;
+    align-items: center;
+    width: 100%;
+}
+
+.input-with-icon .input-icon {
+    position: absolute;
+    left: 15px;
+    width: 20px;
+    height: 20px;
+    color: var(--text-muted);
+    pointer-events: none;
+    transition: var(--transition-normal);
+    z-index: 5;
+}
+
+.input-with-icon .form-input {
+    padding-left: 48px !important; /* space for left icon */
+}
+
+/* Update focus state for icons */
+.input-with-icon:focus-within .input-icon {
+    color: var(--pink-primary);
+    filter: drop-shadow(0 0 4px var(--pink-glow));
+}
+
+/* Password eye toggle wrapper */
+.password-input-wrapper {
+    position: relative;
+    display: flex;
+    align-items: center;
+    width: 100%;
+}
+
+.password-input-wrapper .form-input {
+    padding-right: 50px !important; /* Leave room for toggle button */
+}
+
+.password-toggle-btn {
+    position: absolute;
+    right: 15px;
+    background: transparent;
+    border: none;
+    color: var(--text-muted);
+    cursor: pointer;
+    padding: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: var(--transition-fast);
+    outline: none;
+    z-index: 5;
+}
+
+.password-toggle-btn:hover {
+    color: var(--pink-primary);
+    transform: scale(1.1);
+}
+
+.password-toggle-btn svg {
+    width: 20px;
+    height: 20px;
+    pointer-events: none;
+}
+
+/* Custom styling for the Select drop down and arrow */
+.auth-card select.form-input {
+    padding-right: 40px !important; /* Leave room for dropdown arrow */
+}
+
+/* Update focus state for select arrow icon */
+.input-with-icon:focus-within .select-arrow {
+    color: var(--pink-primary) !important;
+}
+
+/* Mobile Responsiveness for Auth Card */
+@media (max-width: 480px) {
+    .auth-wrapper {
+        padding: 20px 10px !important;
+        min-height: 100vh;
+        height: auto !important;
+        overflow-y: visible !important;
+    }
+    
+    .auth-card {
+        max-width: 380px !important;
+        padding: 24px 20px !important;
+        border-radius: var(--radius-md);
+    }
+    
+    .auth-header {
+        margin-bottom: 15px !important;
+    }
+    
+    .auth-title {
+        font-size: 1.4rem !important;
+    }
+    
+    .auth-subtitle {
+        font-size: 0.8rem !important;
+    }
+    
+    .auth-card .form-group {
+        margin-bottom: 12px !important;
+    }
+    
+    .auth-card .form-label {
+        font-size: 0.75rem !important;
+        margin-bottom: 4px !important;
+    }
+    
+    .auth-card .form-input {
+        padding: 10px 12px !important;
+        font-size: 0.85rem !important;
+        height: 38px !important;
+    }
+    
+    .input-with-icon .form-input {
+        padding-left: 36px !important;
+    }
+    
+    .input-with-icon .input-icon {
+        left: 10px !important;
+        width: 16px !important;
+        height: 16px !important;
+        top: 50% !important;
+        transform: translateY(-50%) !important;
+    }
+    
+    .password-input-wrapper .form-input {
+        padding-right: 36px !important;
+    }
+    
+    .password-toggle-btn {
+        right: 10px !important;
+        top: 50% !important;
+        transform: translateY(-50%) !important;
+    }
+    
+    .password-toggle-btn svg {
+        width: 16px !important;
+        height: 16px !important;
+    }
+    
+    .auth-card .btn-primary {
+        margin-top: 15px !important;
+        padding: 11px !important;
+        font-size: 0.9rem !important;
+    }
+}

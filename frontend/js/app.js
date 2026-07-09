@@ -1,7 +1,6 @@
 import CONFIG from './config.js';
-import { getSessionUser, login, register, clearSessionUser } from './auth.js';
+import { getSessionUser, saveSessionUser, login, register, clearSessionUser } from './auth.js';
 import { startQuiz } from './quiz.js';
-import { setupAdminView, loadAdminData } from './admin.js';
 
 // DOM elements
 const elements = {
@@ -21,7 +20,7 @@ const elements = {
     gotoLogin: document.getElementById('goto-login'),
     
     // Header details
-    headerUsername: document.getElementById('header-username'),
+    headerUsername: document.getElementById('dropdown-username'),
     headerPoints: document.getElementById('header-points'),
     btnLogout: document.getElementById('btn-logout'),
     
@@ -48,6 +47,8 @@ document.addEventListener('DOMContentLoaded', () => {
 function initApp() {
     setupAuthListeners();
     setupTabListeners();
+    setupPasswordToggles();
+    setupProfileDropdown();
     
     // Check if user is logged in
     const user = getSessionUser();
@@ -73,12 +74,44 @@ function initApp() {
     
     window.addEventListener('lessonsUpdated', () => {
         loadLessons();
-        loadAdminData();
     });
     
     window.addEventListener('quizClosed', () => {
         loadLessons();
         loadLeaderboard();
+    });
+}
+
+function setupPasswordToggles() {
+    const toggleBtns = document.querySelectorAll('.password-toggle-btn');
+    toggleBtns.forEach(btn => {
+        btn.addEventListener('click', (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            
+            const wrapper = btn.closest('.password-input-wrapper');
+            const input = wrapper.querySelector('input');
+            
+            if (input.type === 'password') {
+                input.type = 'text';
+                btn.innerHTML = `
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M3.98 8.223A10.477 10.477 0 0 0 1.934 12C3.226 16.338 7.244 19.5 12 19.5c.993 0 1.953-.138 2.863-.395M6.228 6.228A10.451 10.451 0 0 1 12 4.5c4.756 0 8.773 3.162 10.065 7.498a10.522 10.522 0 0 1-4.293 5.774M6.228 6.228 3 3m3.228 3.228 3.65 3.65m7.815 7.815 3 3m-3-3-3.65-3.65m0 0a3 3 0 1 0-4.243-4.243m4.242 4.242L9.88 9.88" />
+                    </svg>
+                `;
+            } else {
+                input.type = 'password';
+                btn.innerHTML = `
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M2.036 12.322a1.012 1.012 0 0 1 0-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178Z" />
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z" />
+                    </svg>
+                `;
+            }
+            
+            // Retain focus on password input so typing is uninterrupted
+            input.focus();
+        });
     });
 }
 
@@ -94,8 +127,8 @@ async function refreshUserSessionAndLoad(user) {
             
             // Sync admin tab visibility if roles changed
             const tabNav = document.querySelector('.tabs-navigation');
-            if (data.user.role === 'admin') {
-                elements.tabAdmin.style.display = 'block';
+            if (data.user && data.user.role && data.user.role.toLowerCase() === 'admin') {
+                elements.tabAdmin.style.display = 'inline-block';
                 tabNav.classList.add('has-admin');
             } else {
                 elements.tabAdmin.style.display = 'none';
@@ -159,6 +192,7 @@ function setupAuthListeners() {
         const usernameVal = document.getElementById('reg-username').value;
         const passwordVal = document.getElementById('reg-password').value;
         const confirmPasswordVal = document.getElementById('reg-confirm-password').value;
+        const roleVal = document.getElementById('reg-role').value;
         
         if (passwordVal !== confirmPasswordVal) {
             showAlert('Passwords do not match.');
@@ -171,7 +205,7 @@ function setupAuthListeners() {
         btn.innerHTML = `<span class="spinner"></span> Registering...`;
         
         try {
-            const user = await register(emailVal, usernameVal, passwordVal);
+            const user = await register(emailVal, usernameVal, passwordVal, roleVal);
             showAlert('Registration successful! Logging you in...', true);
             
             setTimeout(() => {
@@ -212,36 +246,59 @@ function showAuthForms(mode) {
 }
 
 function showAppShell(user) {
+    const urlParams = new URLSearchParams(window.location.search);
+    const forceUserView = urlParams.get('view') === 'user';
+    if (user && user.role && user.role.toLowerCase() === 'admin' && !forceUserView) {
+        window.location.href = 'admin.html';
+        return;
+    }
+
     elements.authWrapper.style.display = 'none';
-    elements.appShell.style.display = 'block';
+    elements.appShell.style.display = 'flex';
     
     updateHeader(user);
-    setupAdminView();
     
     // Check if tabs have admin class
     const tabNav = document.querySelector('.tabs-navigation');
-    if (user.role === 'admin') {
+    if (user && user.role && user.role.toLowerCase() === 'admin') {
         tabNav.classList.add('has-admin');
+        if (elements.tabAdmin) elements.tabAdmin.style.display = 'inline-block';
     } else {
         tabNav.classList.remove('has-admin');
+        if (elements.tabAdmin) elements.tabAdmin.style.display = 'none';
     }
     
     // Switch to lessons page by default
     switchTab('lessons');
     
     // Load fresh data
-    loadLessons();
     loadLeaderboard();
-    loadAdminData();
 }
 
 function updateHeader(user) {
-    elements.headerUsername.textContent = user.username;
-    elements.headerPoints.textContent = user.points;
+    // Set avatar letters
+    const avatarEl = document.getElementById('profile-avatar');
+    const dropdownAvatarEl = document.getElementById('dropdown-avatar');
+    const firstLetter = user.username ? user.username.charAt(0).toUpperCase() : 'U';
     
-    // If admin is logged in, append an (Admin) badge
-    if (user.role === 'admin') {
-        elements.headerUsername.innerHTML = `${user.username} <span style="font-size:0.75rem; color:var(--pink-primary); border: 1px solid var(--pink-primary); padding:1px 4px; border-radius:3px; margin-left:4px;">ADMIN</span>`;
+    if (avatarEl) avatarEl.textContent = firstLetter;
+    if (dropdownAvatarEl) dropdownAvatarEl.textContent = firstLetter;
+    
+    if (elements.headerUsername) elements.headerUsername.textContent = user.username;
+    if (elements.headerPoints) elements.headerPoints.textContent = user.points;
+    
+    // Set dropdown points
+    const dropdownPointsEl = document.getElementById('dropdown-points');
+    if (dropdownPointsEl) dropdownPointsEl.textContent = user.points;
+    
+    // Set dropdown role
+    const dropdownRoleEl = document.getElementById('dropdown-role');
+    if (dropdownRoleEl) {
+        if (user.role === 'admin') {
+            dropdownRoleEl.innerHTML = `<span style="font-size:0.65rem; color:var(--pink-primary); border: 1px solid var(--pink-primary); padding:1px 4px; border-radius:3px; font-weight:800; display:inline-block;">ADMIN</span>`;
+        } else {
+            dropdownRoleEl.textContent = 'USER';
+        }
     }
 }
 
@@ -294,7 +351,22 @@ function switchTab(tabName) {
     // Hide all sections
     elements.secLessons.classList.remove('active');
     elements.secLeaderboard.classList.remove('active');
-    elements.secAdmin.classList.remove('active');
+    if (elements.secAdmin) elements.secAdmin.classList.remove('active');
+    
+    const mainHeader = document.querySelector('header');
+    const mainNav = document.querySelector('.tabs-navigation');
+    const appShell = document.getElementById('app-shell');
+    
+    // Toggle header and tab bar visibility based on admin view
+    if (tabName === 'admin') {
+        if (mainHeader) mainHeader.style.display = 'flex'; // Keep header visible
+        if (mainNav) mainNav.style.display = 'none'; // Hide user navigation tabs
+        if (appShell) appShell.classList.add('admin-mode');
+    } else {
+        if (mainHeader) mainHeader.style.display = 'flex';
+        if (mainNav) mainNav.style.display = 'flex';
+        if (appShell) appShell.classList.remove('admin-mode');
+    }
     
     // Set active
     if (tabName === 'lessons') {
@@ -306,9 +378,7 @@ function switchTab(tabName) {
         elements.secLeaderboard.classList.add('active');
         loadLeaderboard();
     } else if (tabName === 'admin') {
-        if (elements.tabAdmin) elements.tabAdmin.classList.add('active');
-        elements.secAdmin.classList.add('active');
-        loadAdminData();
+        window.location.href = 'admin.html';
     }
 }
 
@@ -368,28 +438,9 @@ async function loadLessons() {
 
 function renderCategoryTabs() {
     const tabContainer = document.getElementById('category-tabs-container');
-    if (!tabContainer) return;
-    
-    const categories = ["Nature ធម្មជាតិ", "Basics មូលដ្ឋាន"];
-    
-    tabContainer.innerHTML = `
-        <div class="category-bar">
-            ${categories.map(cat => `
-                <button class="category-tab ${cat === currentActiveCategory ? 'active' : ''}" data-category="${cat}">
-                    ${cat}
-                </button>
-            `).join('')}
-        </div>
-    `;
-    
-    tabContainer.querySelectorAll('.category-tab').forEach(tab => {
-        tab.addEventListener('click', () => {
-            currentActiveCategory = tab.getAttribute('data-category');
-            tabContainer.querySelectorAll('.category-tab').forEach(t => t.classList.remove('active'));
-            tab.classList.add('active');
-            renderLessonsGrid();
-        });
-    });
+    if (tabContainer) {
+        tabContainer.style.display = 'none'; // Hide the category switcher tabs completely
+    }
 }
 
 async function renderLessonsGrid() {
@@ -409,12 +460,6 @@ async function renderLessonsGrid() {
                 color: "pink"
             };
         }
-    });
-    
-    const filtered = allLoadedLessons.filter(lesson => {
-        const topic = LESSON_TO_TOPIC_MAP[lesson.title];
-        const def = TOPICS_DEFINITION[topic] || { category: "Basics មូលដ្ឋាន" };
-        return def.category === currentActiveCategory;
     });
     
     // Group lessons by topic and fetch word counts
@@ -447,13 +492,11 @@ async function renderLessonsGrid() {
         }
     });
     
-    // Filter topics by category
-    const topicsToShow = Object.keys(TOPICS_DEFINITION).filter(topic => {
-        return TOPICS_DEFINITION[topic].category === currentActiveCategory;
-    });
+    // Show all topics together
+    const topicsToShow = Object.keys(TOPICS_DEFINITION);
     
     if (topicsToShow.length === 0) {
-        grid.innerHTML = '<p style="color: #64748b; text-align: center; grid-column: 1/-1; padding: 40px;">No topics available in this category.</p>';
+        grid.innerHTML = '<p style="color: #64748b; text-align: center; grid-column: 1/-1; padding: 40px;">No topics available.</p>';
         return;
     }
     
@@ -601,4 +644,23 @@ function escapeHtml(text) {
         .replace(/>/g, "&gt;")
         .replace(/"/g, "&quot;")
         .replace(/'/g, "&#039;");
+}
+
+function setupProfileDropdown() {
+    const avatar = document.getElementById('profile-avatar');
+    const dropdown = document.getElementById('profile-dropdown');
+    
+    if (!avatar || !dropdown) return;
+    
+    avatar.addEventListener('click', (e) => {
+        e.stopPropagation();
+        dropdown.classList.toggle('active');
+    });
+    
+    // Close dropdown when clicking outside
+    document.addEventListener('click', (e) => {
+        if (!dropdown.contains(e.target) && e.target !== avatar) {
+            dropdown.classList.remove('active');
+        }
+    });
 }

@@ -464,6 +464,16 @@ async function endQuiz() {
         elements.resultEmoji.textContent = '🏆';
         elements.resultTitle.textContent = 'Outstanding!';
         elements.resultDesc.textContent = `Excellent job! You have mastered the words of "${quizState.lessonTitle}" in ${getModeKhmerName(quizState.quizMode)} mode!`;
+        
+        // Trigger high-end celebration confetti
+        if (typeof confetti === 'function') {
+            confetti({
+                particleCount: 150,
+                spread: 80,
+                origin: { y: 0.6 },
+                colors: ['#ff2a74', '#ff7aa5', '#ffffff', '#00e699', '#ffcc00']
+            });
+        }
     } else if (accuracy >= 50) {
         elements.resultEmoji.textContent = '💪';
         elements.resultTitle.textContent = 'Good Job!';

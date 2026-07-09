@@ -162,7 +162,7 @@ def seed_data(conn):
             {"chinese": "橘子", "pinyin": "jú zi", "khmer": "ក្រូចពោធិ៍សាត់", "english": "Mandarin Orange"},
             {"chinese": "番石榴", "pinyin": "fān shí liú", "khmer": "ត្របែក", "english": "Guava"},
             {"chinese": "猕猴桃", "pinyin": "mí hóu táo", "khmer": "គីវី", "english": "Kiwi Fruit"},
-            {"chinese": "牛油果", "pinyin": "niú yóu guǒ", "khmer": "អាវ៉ូកាដូ", "english": "Avocado"},
+            {"chinese": "牛油果", "pinyin": "niú yۆu guǒ", "khmer": "អាវ៉ូកាដូ", "english": "Avocado"},
             {"chinese": "荔枝", "pinyin": "lì zhī", "khmer": "លីចី", "english": "Lychee"},
             {"chinese": "火龙果", "pinyin": "huǒ lóng guǒ", "khmer": "ផ្លែស្រកានាគ", "english": "Dragon Fruit"},
             {"chinese": "樱桃", "pinyin": "yīng táo", "khmer": "ផ្លែឆឺរី", "english": "Cherry"},
@@ -208,7 +208,7 @@ def seed_data(conn):
             {"chinese": "山榄", "pinyin": "shān lǎn", "khmer": "អំពិលផ្អែម", "english": "Black Olive Fruit"},
             {"chinese": "诺丽果", "pinyin": "nuò lì guǒ", "khmer": "ណូនី", "english": "Noni Fruit"},
             {"chinese": "团花果", "pinyin": "tuán huā guǒ", "khmer": "មៀន", "english": "Longan"},
-            {"chinese": "罗望果 / 酸豆", "pinyin": "luó wàng guǒ / suān dòu", "khmer": "អំពិលទុំ", "english": "Tamarind"},
+            {"chinese": "罗望果 / 酸豆", "pinyin": "luۆ wàng guǒ / suān dòu", "khmer": "អំពិលទុំ", "english": "Tamarind"},
             {"chinese": "西印度酸栗", "pinyin": "xī yìn dù suān lì", "khmer": "កន្ទួត", "english": "Otaheite Gooseberry"},
             {"chinese": "仙桃果 / 蛋黄果", "pinyin": "xiān táo guǒ / dàn huáng guǒ", "khmer": "កន្លង់ (Canistel)", "english": "Egg Fruit (Canistel)"},
             {"chinese": "木苹果", "pinyin": "mù píng guǒ", "khmer": "ម្ដិះ", "english": "Wood Apple"},
@@ -272,7 +272,7 @@ def seed_data(conn):
             (colors_id, "白色", "báisè", "white", json.dumps(["white", "black", "gray", "silver"]))
         ]
 
-        # Insert Words for Lesson 7: Animals (动物)
+        # Insert Words for Lesson: Animals (动物)
         animals_id = lessons_map["Animals (动物)"]
         animals_words = [
             (animals_id, "猫", "māo", "cat", json.dumps(["cat", "dog", "rabbit", "lion"])),

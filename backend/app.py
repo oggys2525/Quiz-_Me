@@ -7,9 +7,16 @@ try:
 except ImportError:
     from .database import get_db_connection, hash_password, init_db
 
-app = Flask(__name__)
+import os
+
+frontend_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), '../frontend'))
+app = Flask(__name__, static_folder=frontend_dir, static_url_path='')
 # Enable CORS for all routes so frontend can communicate with backend
 CORS(app)
+
+@app.route('/')
+def index():
+    return app.send_static_file('index.html')
 
 # Helper function to check if requester is admin
 def is_admin(req):
@@ -25,6 +32,10 @@ def register():
     email = data['email'].strip().lower()
     username = data['username'].strip().lower()
     password = data['password']
+    requested_role = data.get('role', 'user').strip().lower()
+    
+    if requested_role not in ['admin', 'user']:
+        requested_role = 'user'
     
     if '@' not in email or '.' not in email:
         return jsonify({'error': 'Invalid email address format'}), 400
@@ -38,10 +49,10 @@ def register():
     
     try:
         hashed_pw = hash_password(password)
-        # Check if first user, if so make admin, else user
+        # Check if first user, if so make admin, else use requested role
         cursor.execute("SELECT COUNT(*) FROM users")
         user_count = cursor.fetchone()[0]
-        role = 'admin' if user_count == 0 else 'user'
+        role = 'admin' if user_count == 0 else requested_role
         
         cursor.execute("INSERT INTO users (email, username, password, role, points) VALUES (?, ?, ?, ?, ?)",
                        (email, username, hashed_pw, role, 0))
@@ -285,6 +296,131 @@ def get_leaderboard():
     users = [dict(row) for row in cursor.fetchall()]
     conn.close()
     return jsonify(users), 200
+
+@app.route('/api/users', methods=['GET'])
+def get_users():
+    if not is_admin(request):
+        return jsonify({'error': 'Unauthorized. Admin access required.'}), 403
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    cursor.execute("SELECT id, username, role, points FROM users ORDER BY username ASC")
+    users = [dict(row) for row in cursor.fetchall()]
+    conn.close()
+    return jsonify(users), 200
+
+@app.route('/api/users', methods=['POST'])
+def create_user():
+    if not is_admin(request):
+        return jsonify({'error': 'Unauthorized. Admin access required.'}), 403
+    data = request.json
+    if not data or not data.get('username') or not data.get('password'):
+        return jsonify({'error': 'Username and password are required'}), 400
+    
+    username = data['username'].strip()
+    password = data['password']
+    role = data.get('role', 'user').strip()
+    
+    if role not in ['user', 'admin']:
+        return jsonify({'error': 'Invalid role. Must be user or admin.'}), 400
+        
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    try:
+        hashed = hash_password(password)
+        cursor.execute("INSERT INTO users (username, password, role, points) VALUES (?, ?, ?, 0)", (username, hashed, role))
+        conn.commit()
+        user_id = cursor.lastrowid
+        return jsonify({'id': user_id, 'username': username, 'role': role, 'points': 0}), 201
+    except sqlite3.IntegrityError:
+        return jsonify({'error': 'Username already exists'}), 400
+    finally:
+        conn.close()
+
+@app.route('/api/users/<int:user_id>', methods=['PUT'])
+def update_user(user_id):
+    if not is_admin(request):
+        return jsonify({'error': 'Unauthorized. Admin access required.'}), 403
+    data = request.json
+    if not data or not data.get('username'):
+        return jsonify({'error': 'Username is required'}), 400
+        
+    username = data['username'].strip()
+    role = data.get('role', 'user').strip()
+    points = data.get('points', 0)
+    password = data.get('password') # Optional password change
+    
+    if role not in ['user', 'admin']:
+        return jsonify({'error': 'Invalid role. Must be user or admin.'}), 400
+        
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    try:
+        if password:
+            hashed = hash_password(password)
+            cursor.execute("UPDATE users SET username = ?, role = ?, points = ?, password = ? WHERE id = ?", (username, role, points, hashed, user_id))
+        else:
+            cursor.execute("UPDATE users SET username = ?, role = ?, points = ? WHERE id = ?", (username, role, points, user_id))
+        conn.commit()
+        return jsonify({'message': 'User updated successfully'}), 200
+    except sqlite3.IntegrityError:
+        return jsonify({'error': 'Username already exists'}), 400
+    finally:
+        conn.close()
+
+@app.route('/api/users/<int:user_id>', methods=['DELETE'])
+def delete_user(user_id):
+    if not is_admin(request):
+        return jsonify({'error': 'Unauthorized. Admin access required.'}), 403
+    
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    cursor.execute("DELETE FROM users WHERE id = ?", (user_id,))
+    conn.commit()
+    conn.close()
+    return jsonify({'message': 'User deleted successfully'}), 200
+
+@app.route('/api/lessons/<int:lesson_id>', methods=['PUT'])
+def update_lesson(lesson_id):
+    if not is_admin(request):
+        return jsonify({'error': 'Unauthorized. Admin access required.'}), 403
+    data = request.json
+    if not data or not data.get('title'):
+        return jsonify({'error': 'Lesson title is required'}), 400
+        
+    title = data['title'].strip()
+    description = data.get('description', '').strip()
+    
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    try:
+        cursor.execute("UPDATE lessons SET title = ?, description = ? WHERE id = ?", (title, description, lesson_id))
+        conn.commit()
+        return jsonify({'id': lesson_id, 'title': title, 'description': description}), 200
+    except sqlite3.IntegrityError:
+        return jsonify({'error': 'Lesson title already exists'}), 400
+    finally:
+        conn.close()
+
+@app.route('/api/words/<int:word_id>', methods=['PUT'])
+def update_word(word_id):
+    if not is_admin(request):
+        return jsonify({'error': 'Unauthorized. Admin access required.'}), 403
+    data = request.json
+    if not data or not data.get('chinese') or not data.get('pinyin') or not data.get('english') or not data.get('options'):
+        return jsonify({'error': 'All fields (chinese, pinyin, english, options) are required'}), 400
+        
+    chinese = data['chinese'].strip()
+    pinyin = data['pinyin'].strip()
+    english = data['english'].strip()
+    options = data['options'] # list
+    
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    cursor.execute("UPDATE words SET chinese = ?, pinyin = ?, english = ?, options = ? WHERE id = ?", 
+                   (chinese, pinyin, english, json.dumps(options), word_id))
+    conn.commit()
+    conn.close()
+    return jsonify({'message': 'Word updated successfully'}), 200
 
 if __name__ == '__main__':
     # Initialize the database just in case

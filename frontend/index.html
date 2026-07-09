@@ -8,6 +8,8 @@
     <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Ctext y='20' font-size='20'%3E🐉%3C/text%3E%3C/svg%3E">
     <!-- Main stylesheet -->
     <link rel="stylesheet" href="css/style.css">
+    <!-- Confetti Library -->
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
 </head>
 <body>
 
@@ -32,11 +34,27 @@
                 <form id="login-form">
                     <div class="form-group">
                         <label for="login-username" class="form-label">Email / Username</label>
-                        <input type="text" id="login-username" class="form-input" placeholder="email@example.com or username" required autocomplete="username">
+                        <div class="input-with-icon">
+                            <svg class="input-icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 6a3.75 3.75 0 1 1-7.5 0 3.75 3.75 0 0 1 7.5 0ZM4.501 20.118a7.5 7.5 0 0 1 14.998 0A17.933 17.933 0 0 1 12 21.75c-2.676 0-5.216-.584-7.499-1.632Z" />
+                            </svg>
+                            <input type="text" id="login-username" class="form-input" placeholder="email@example.com or username" required autocomplete="username">
+                        </div>
                     </div>
                     <div class="form-group">
                         <label for="login-password" class="form-label">Password</label>
-                        <input type="password" id="login-password" class="form-input" placeholder="••••••••" required autocomplete="current-password">
+                        <div class="input-with-icon password-input-wrapper">
+                            <svg class="input-icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M16.5 10.5V6.75a4.5 4.5 0 1 0-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 0 0 2.25-2.25v-6.75a2.25 2.25 0 0 0-2.25-2.25H6.75a2.25 2.25 0 0 0-2.25 2.25v6.75a2.25 2.25 0 0 0 2.25 2.25Z" />
+                            </svg>
+                            <input type="password" id="login-password" class="form-input" placeholder="••••••••" required autocomplete="current-password">
+                            <button type="button" class="password-toggle-btn" aria-label="Toggle Password Visibility" tabindex="-1">
+                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M2.036 12.322a1.012 1.012 0 0 1 0-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178Z" />
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z" />
+                                </svg>
+                            </button>
+                        </div>
                     </div>
                     <button type="submit" class="btn-primary">Sign In</button>
                 </form>
@@ -58,19 +76,66 @@
                 <form id="register-form">
                     <div class="form-group">
                         <label for="reg-email" class="form-label">Email Address</label>
-                        <input type="email" id="reg-email" class="form-input" placeholder="email@example.com" required autocomplete="email">
+                        <div class="input-with-icon">
+                            <svg class="input-icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M21.75 6.75v10.5a2.25 2.25 0 0 1-2.25 2.25h-15a2.25 2.25 0 0 1-2.25-2.25V6.75m19.5 0A2.25 2.25 0 0 0 19.5 4.5h-15a2.25 2.25 0 0 0-2.25 2.25m19.5 0v.243a2.25 2.25 0 0 1-1.07 1.916l-7.5 4.615a2.25 2.25 0 0 1-2.36 0L3.32 8.91a2.25 2.25 0 0 1-1.07-1.916V6.75" />
+                            </svg>
+                            <input type="email" id="reg-email" class="form-input" placeholder="email@example.com" required autocomplete="email">
+                        </div>
                     </div>
                     <div class="form-group">
                         <label for="reg-username" class="form-label">Username</label>
-                        <input type="text" id="reg-username" class="form-input" placeholder="Choose a username" required autocomplete="username">
+                        <div class="input-with-icon">
+                            <svg class="input-icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 6a3.75 3.75 0 1 1-7.5 0 3.75 3.75 0 0 1 7.5 0ZM4.501 20.118a7.5 7.5 0 0 1 14.998 0A17.933 17.933 0 0 1 12 21.75c-2.676 0-5.216-.584-7.499-1.632Z" />
+                            </svg>
+                            <input type="text" id="reg-username" class="form-input" placeholder="Choose a username" required autocomplete="username">
+                        </div>
                     </div>
                     <div class="form-group">
                         <label for="reg-password" class="form-label">Password</label>
-                        <input type="password" id="reg-password" class="form-input" placeholder="••••••••" required autocomplete="new-password">
+                        <div class="input-with-icon password-input-wrapper">
+                            <svg class="input-icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M16.5 10.5V6.75a4.5 4.5 0 1 0-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 0 0 2.25-2.25v-6.75a2.25 2.25 0 0 0-2.25-2.25H6.75a2.25 2.25 0 0 0-2.25 2.25v6.75a2.25 2.25 0 0 0 2.25 2.25Z" />
+                            </svg>
+                            <input type="password" id="reg-password" class="form-input" placeholder="••••••••" required autocomplete="new-password">
+                            <button type="button" class="password-toggle-btn" aria-label="Toggle Password Visibility" tabindex="-1">
+                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M2.036 12.322a1.012 1.012 0 0 1 0-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178Z" />
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z" />
+                                </svg>
+                            </button>
+                        </div>
                     </div>
                     <div class="form-group">
                         <label for="reg-confirm-password" class="form-label">Confirm Password</label>
-                        <input type="password" id="reg-confirm-password" class="form-input" placeholder="••••••••" required autocomplete="new-password">
+                        <div class="input-with-icon password-input-wrapper">
+                            <svg class="input-icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M16.5 10.5V6.75a4.5 4.5 0 1 0-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 0 0 2.25-2.25v-6.75a2.25 2.25 0 0 0-2.25-2.25H6.75a2.25 2.25 0 0 0-2.25 2.25v6.75a2.25 2.25 0 0 0 2.25 2.25Z" />
+                            </svg>
+                            <input type="password" id="reg-confirm-password" class="form-input" placeholder="••••••••" required autocomplete="new-password">
+                            <button type="button" class="password-toggle-btn" aria-label="Toggle Password Visibility" tabindex="-1">
+                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M2.036 12.322a1.012 1.012 0 0 1 0-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178Z" />
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z" />
+                                </svg>
+                            </button>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="reg-role" class="form-label">Account Role (តួនាទីគណនី)</label>
+                        <div class="input-with-icon">
+                            <svg class="input-icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M17.982 18.725A7.488 7.488 0 0 0 12 15.75a7.488 7.488 0 0 0-5.982 2.975m11.963 0a9 9 0 1 0-11.963 0m11.963 0A8.966 8.966 0 0 1 12 21a8.966 8.966 0 0 1-5.982-2.275M15 9.75a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z" />
+                            </svg>
+                            <select id="reg-role" class="form-input" style="width: 100%; color: var(--text-white); background-color: rgba(7, 8, 13, 0.6); appearance: none; -webkit-appearance: none; cursor: pointer;" required>
+                                <option value="user" style="background-color: var(--bg-card-solid);">User (អ្នកប្រើប្រាស់)</option>
+                                <option value="admin" style="background-color: var(--bg-card-solid);">Admin (អ្នកគ្រប់គ្រង)</option>
+                            </select>
+                            <svg class="select-arrow" style="position: absolute; right: 15px; width: 14px; height: 14px; pointer-events: none; color: var(--text-muted);" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M19 9l-7 7-7-7"></path>
+                            </svg>
+                        </div>
                     </div>
                     <button type="submit" class="btn-primary">Register Account</button>
                 </form>
@@ -95,8 +160,34 @@
                         <span>🔥</span>
                         <span id="header-points">0</span> pts
                     </div>
-                    <span id="header-username" class="username-tag">Username</span>
-                    <button id="btn-logout" class="btn-logout">Logout</button>
+                    
+                    <div class="profile-menu-container">
+                        <div class="profile-avatar" id="profile-avatar" tabindex="0">U</div>
+                        
+                        <!-- Floating Dropdown Menu -->
+                        <div class="profile-dropdown" id="profile-dropdown">
+                            <div class="dropdown-header">
+                                <div class="dropdown-avatar" id="dropdown-avatar">U</div>
+                                <div class="dropdown-user-info">
+                                    <div id="dropdown-username" class="dropdown-username">Username</div>
+                                    <div id="dropdown-role" class="dropdown-role">user</div>
+                                </div>
+                            </div>
+                            <div class="dropdown-divider"></div>
+                            <div class="dropdown-item">
+                                <span class="item-icon">🔥</span>
+                                <span class="item-label">Total Points:</span>
+                                <span id="dropdown-points" class="item-value">0</span>
+                            </div>
+                            <div class="dropdown-divider"></div>
+                            <button id="btn-logout" class="dropdown-logout-btn">
+                                <svg class="logout-icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" style="display: block; width: 18px; height: 18px;">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 9V5.25A2.25 2.25 0 0 0 13.5 3h-6a2.25 2.25 0 0 0-2.25 2.25v13.5A2.25 2.25 0 0 0 7.5 21h6a2.25 2.25 0 0 0 2.25-2.25V15M12 9l-3 3m0 0 3 3m-3-3h12.75" />
+                                </svg>
+                                Sign Out
+                            </button>
+                        </div>
+                    </div>
                 </div>
             </header>
 
@@ -148,117 +239,6 @@
                     </div>
                 </section>
 
-                <!-- ADMIN PANEL SECTION -->
-                <section id="sec-admin" class="page-section">
-                    <h2 class="section-title">Admin Management</h2>
-                    
-                    <div class="admin-grid">
-                        
-                        <!-- Col 1: Forms Panel -->
-                        <div style="display: flex; flex-direction: column; gap: 25px;">
-                            
-                            <!-- Add Lesson Panel -->
-                            <div class="admin-panel">
-                                <h3 class="admin-panel-title">Create New Lesson</h3>
-                                <form id="add-lesson-form">
-                                    <div class="form-group">
-                                        <label for="lesson-title" class="form-label">Lesson Title</label>
-                                        <input type="text" id="lesson-title" class="form-input" placeholder="e.g. Weather (天气)" required>
-                                    </div>
-                                    <div class="form-group">
-                                        <label for="lesson-desc" class="form-label">Description</label>
-                                        <input type="text" id="lesson-desc" class="form-input" placeholder="What does this lesson cover?">
-                                    </div>
-                                    <button type="submit" class="btn-primary">Add Lesson</button>
-                                </form>
-                            </div>
-                            
-                            <!-- Add Word Panel -->
-                            <div class="admin-panel">
-                                <h3 class="admin-panel-title">Add Word to Lesson</h3>
-                                <form id="add-word-form">
-                                    <div class="form-group">
-                                        <label for="word-lesson-id" class="form-label">Select Lesson</label>
-                                        <select id="word-lesson-id" class="select-input" required>
-                                            <option value="">-- Select a Lesson --</option>
-                                        </select>
-                                    </div>
-                                    <div class="form-group">
-                                        <label for="word-chinese-input" class="form-label">Chinese Character</label>
-                                        <input type="text" id="word-chinese-input" class="form-input" placeholder="e.g. 早上好" required>
-                                    </div>
-                                    <div class="form-group">
-                                        <label for="word-pinyin-input" class="form-label">Pinyin Spelling</label>
-                                        <input type="text" id="word-pinyin-input" class="form-input" placeholder="e.g. zǎoshang hǎo" required>
-                                    </div>
-                                    <div class="form-group">
-                                        <label for="word-english-input" class="form-label">English Translation (Correct Answer)</label>
-                                        <input type="text" id="word-english-input" class="form-input" placeholder="e.g. Good morning" required>
-                                    </div>
-                                    
-                                    <div class="form-group">
-                                        <label class="form-label">Multiple-Choice Options (Include correct answer)</label>
-                                        <div class="options-input-grid">
-                                            <input type="text" id="word-opt-1" class="form-input" placeholder="Option 1" required>
-                                            <input type="text" id="word-opt-2" class="form-input" placeholder="Option 2" required>
-                                            <input type="text" id="word-opt-3" class="form-input" placeholder="Option 3" required>
-                                            <input type="text" id="word-opt-4" class="form-input" placeholder="Option 4" required>
-                                        </div>
-                                    </div>
-                                    
-                                    <button type="submit" class="btn-primary">Add Word</button>
-                                </form>
-                            </div>
-                            
-                        </div>
-
-                        <!-- Col 2: Tables Panel -->
-                        <div style="display: flex; flex-direction: column; gap: 25px;">
-                            
-                            <!-- Lessons list management -->
-                            <div class="admin-panel">
-                                <h3 class="admin-panel-title">Manage Lessons</h3>
-                                <div class="admin-table-container">
-                                    <table class="admin-table">
-                                        <thead>
-                                            <tr>
-                                                <th>Title</th>
-                                                <th>Description</th>
-                                                <th style="text-align: right;">Action</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody id="lessons-table-body">
-                                            <!-- filled dynamically -->
-                                        </tbody>
-                                    </table>
-                                </div>
-                            </div>
-                            
-                            <!-- Words list management -->
-                            <div class="admin-panel">
-                                <h3 class="admin-panel-title">Manage Vocabulary Words</h3>
-                                <div class="admin-table-container">
-                                    <table class="admin-table">
-                                        <thead>
-                                            <tr>
-                                                <th>Chinese</th>
-                                                <th>Pinyin</th>
-                                                <th>English</th>
-                                                <th>Lesson</th>
-                                                <th style="text-align: right;">Action</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody id="words-table-body">
-                                            <!-- filled dynamically -->
-                                        </tbody>
-                                    </table>
-                                </div>
-                            </div>
-                            
-                        </div>
-                        
-                    </div>
-                </section>
                 
             </main>
             
@@ -378,6 +358,8 @@
         </footer>
 
     </div>
+
+
 
     <!-- Load App Logic Script -->
     <script type="module" src="js/app.js"></script>

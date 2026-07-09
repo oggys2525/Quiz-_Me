@@ -40,12 +40,12 @@ export async function login(usernameOrEmail, password) {
     }
 }
 
-export async function register(email, username, password) {
+export async function register(email, username, password, role) {
     try {
         const response = await fetch(`${CONFIG.API_URL}/auth/register`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ email, username, password })
+            body: JSON.stringify({ email, username, password, role })
         });
         
         const data = await response.json();

@@ -1,0 +1,95 @@
+.leaderboard-container {
+    background: var(--bg-card);
+    backdrop-filter: blur(var(--glass-blur));
+    -webkit-backdrop-filter: blur(var(--glass-blur));
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-lg);
+    padding: 35px;
+    max-width: 760px;
+    margin: 0 auto;
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
+}
+
+.leaderboard-list {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    margin-top: 25px;
+}
+
+.leaderboard-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 16px 24px;
+    border-radius: var(--radius-md);
+    background: rgba(255, 255, 255, 0.01);
+    border: 1px solid rgba(255, 255, 255, 0.04);
+    transition: var(--transition-normal);
+}
+
+.leaderboard-item:hover {
+    background: rgba(255, 255, 255, 0.03);
+    border-color: rgba(255, 42, 116, 0.2);
+    transform: translateY(-2px);
+    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.3);
+}
+
+/* Special Rank Icons */
+.leaderboard-rank {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 800;
+    font-size: 0.95rem;
+    color: var(--text-muted);
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.leaderboard-rank.rank-1 {
+    background: linear-gradient(135deg, #ffe066 0%, #f5b041 100%);
+    color: #512e08;
+    border: none;
+    font-size: 1.1rem;
+    box-shadow: 0 0 15px rgba(245, 176, 65, 0.4);
+}
+
+.leaderboard-rank.rank-2 {
+    background: linear-gradient(135deg, #e5e8e8 0%, #bdc3c7 100%);
+    color: #2c3e50;
+    border: none;
+    font-size: 1.1rem;
+    box-shadow: 0 0 12px rgba(189, 195, 199, 0.3);
+}
+
+.leaderboard-rank.rank-3 {
+    background: linear-gradient(135deg, #edbb99 0%, #dc7633 100%);
+    color: #4a2306;
+    border: none;
+    font-size: 1.1rem;
+    box-shadow: 0 0 10px rgba(220, 118, 51, 0.3);
+}
+
+.leaderboard-user-info {
+    flex-grow: 1;
+    margin-left: 20px;
+}
+
+.leaderboard-name {
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: var(--text-white);
+    display: inline-flex;
+    align-items: center;
+}
+
+.leaderboard-score {
+    font-size: 1.1rem;
+    font-weight: 800;
+    color: var(--pink-primary);
+    text-shadow: 0 0 8px var(--pink-glow);
+}
