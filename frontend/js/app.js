@@ -391,7 +391,8 @@ const TOPICS_DEFINITION = {
     "Numbers 数字": { category: "Basics មូលដ្ឋាន", emoji: "🔢", color: "purple" },
     "Colors 颜色": { category: "Basics មូលដ្ឋាន", emoji: "🎨", color: "yellow" },
     "Food & Drink 饮食": { category: "Basics មូលដ្ឋាន", emoji: "🍜", color: "orange" },
-    "Sports 运动": { category: "Basics មូលដ្ឋាន", emoji: "⚽", color: "blue" }
+    "Sports 运动": { category: "Basics មូលដ្ឋាន", emoji: "⚽", color: "blue" },
+    "Chinese New Year (春节)": { category: "Basics មូលដ្ឋាន", emoji: "🧧", color: "pink" }
 };
 
 const LESSON_TO_TOPIC_MAP = {
@@ -404,7 +405,8 @@ const LESSON_TO_TOPIC_MAP = {
     "Fruits Part 3 (水果 ភាគ ៣)": "Fruit ផ្លែឈើ",
     "Fruits Part 4 (水果 ភាគ ៤)": "Fruit ផ្លែឈើ",
     "Animals (动物)": "Animals សត្វ",
-    "Sports (运动)": "Sports 运动"
+    "Sports (运动)": "Sports 运动",
+    "Chinese New Year (春节)": "Chinese New Year (春节)"
 };
 
 const LESSON_SUBTITLE_MAP = {
@@ -417,11 +419,30 @@ const LESSON_SUBTITLE_MAP = {
     "Fruits Part 3 (水果 ភាគ ៣)": "Lesson 3: Citrus & Berries",
     "Fruits Part 4 (水果 ភាគ ៤)": "Lesson 4: Melons & Exotic Fruits",
     "Animals (动物)": "Lesson 1: Common Animals",
-    "Sports (运动)": "Lesson 1: Popular Sports"
+    "Sports (运动)": "Lesson 1: Popular Sports",
+    "Chinese New Year (春节)": "Lesson 1: New Year Wishes"
 };
 
 let currentActiveCategory = "Nature ធម្មជាតិ"; // Default category
 let allLoadedLessons = [];
+let scrollRevealObserver = null;
+
+function getScrollRevealObserver() {
+    if (!scrollRevealObserver) {
+        scrollRevealObserver = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('revealed');
+                    scrollRevealObserver.unobserve(entry.target);
+                }
+            });
+        }, {
+            threshold: 0.05,
+            root: document.querySelector('main')
+        });
+    }
+    return scrollRevealObserver;
+}
 
 async function loadLessons() {
     try {
@@ -500,13 +521,14 @@ async function renderLessonsGrid() {
         return;
     }
     
-    topicsToShow.forEach(topic => {
+    topicsToShow.forEach((topic, index) => {
         const def = TOPICS_DEFINITION[topic];
         const wordCount = topicWordCounts[topic] || 0;
         const lessonCount = topicLessonCounts[topic] || 0;
         
         const card = document.createElement('div');
-        card.className = `lesson-card color-${def.color}`;
+        card.className = `lesson-card color-${def.color} reveal-card`;
+        card.style.transitionDelay = `${index * 60}ms`;
         
         let bg = "rgba(255, 255, 255, 0.02)", border = "rgba(255, 255, 255, 0.08)", text = "var(--text-white)";
         if (def.color === 'red') {
@@ -546,6 +568,7 @@ async function renderLessonsGrid() {
         }
         
         grid.appendChild(card);
+        getScrollRevealObserver().observe(card);
     });
 }
 

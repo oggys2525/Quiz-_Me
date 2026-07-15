@@ -111,7 +111,8 @@ def seed_data(conn):
             ("Fruits Part 4 (水果 ភាគ ៤)", "Learn Chinese terms for fruits, Part 4 (Words 52-67) with Khmer meanings."),
             ("Sports (运动)", "Vocabulary about sports, exercises, and physical activities."),
             ("Colors (颜色)", "Basic colors and shades in Chinese characters and pinyin."),
-            ("Animals (动物)", "Learn how to say common pets and wild animals in Chinese.")
+            ("Animals (动物)", "Learn how to say common pets and wild animals in Chinese."),
+            ("Chinese New Year (春节)", "Learn common Chinese vocabulary, greetings, and expressions for the Chinese New Year with Khmer translations.")
         ]
         
         cursor.executemany("INSERT INTO lessons (title, description) VALUES (?, ?)", lessons_data)
@@ -283,9 +284,58 @@ def seed_data(conn):
             (animals_id, "兔子", "tùzi", "rabbit", json.dumps(["rabbit", "hamster", "squirrel", "deer"]))
         ]
 
+        # Insert Words for Lesson: Chinese New Year (春节)
+        cny_id = lessons_map["Chinese New Year (春节)"]
+        cny_list = [
+            {"chinese": "春节", "pinyin": "chūn jié", "khmer": "បុណ្យចូលឆ្នាំចិន"},
+            {"chinese": "中新年", "pinyin": "zhōng xīn nián", "khmer": "បុណ្យចូលឆ្នាំចិន"},
+            {"chinese": "红包", "pinyin": "hóng bāo", "khmer": "អាំងប៉ាវ"},
+            {"chinese": "红包多多", "pinyin": "hóng bāo duō duō", "khmer": "សូមឲ្យបានអាំងប៉ាវច្រើនៗ"},
+            {"chinese": "发红包", "pinyin": "fā hóng bāo", "khmer": "ចែកអាំងប៉ាវ"},
+            {"chinese": "灯笼", "pinyin": "dēng lóng", "khmer": "គោមក្រហម"},
+            {"chinese": "拜年", "pinyin": "bài nián", "khmer": "ជូនពរឆ្នាំថ្មី"},
+            {"chinese": "舞狮", "pinyin": "wǔ shī", "khmer": "រាំសិង្ហ"},
+            {"chinese": "舞龙", "pinyin": "wǔ lóng", "khmer": "រាំនាគ"},
+            {"chinese": "祝 / 祝福", "pinyin": "zhù / zhù fú", "khmer": "ជូនពរ / ពាក្យជូនពរ"},
+            {"chinese": "新年快乐", "pinyin": "xīn nián kuài lè", "khmer": "រីករាយឆ្នាំថ្មី"},
+            {"chinese": "恭贺新年", "pinyin": "gōng hè xīn nián", "khmer": "សូមអបអរសាទរឆ្នាំថ្មី"},
+            {"chinese": "恭喜发财", "pinyin": "gōng xǐ fā cái", "khmer": "សូមឲ្យមានទ្រព្យសម្បត្តិ និងមានលាភ"},
+            {"chinese": "出入平安", "pinyin": "chū rù píng ān", "khmer": "ទៅមកដោយសុវត្ថិភាព"},
+            {"chinese": "一路平安", "pinyin": "yí lù píng ān", "khmer": "សូមឲ្យធ្វើដំណើរដោយសុវត្ថិភាព"},
+            {"chinese": "一路顺风", "pinyin": "yí lù shùn fēng", "khmer": "សូមឲ្យដំណើររលូន"},
+            {"chinese": "合家平安", "pinyin": "hé jiā píng ān", "khmer": "សូមឲ្យគ្រួសារទាំងមូលមានសុខសាន្ត"},
+            {"chinese": "祝你幸福愉快", "pinyin": "zhù nǐ xìng fú yú kuài", "khmer": "សូមឲ្យអ្នកមានសុភមង្គល និងរីករាយ"},
+            {"chinese": "祝你身体健康", "pinyin": "zhù nǐ shēn tǐ jiàn kāng", "khmer": "សូមឲ្យអ្នកមានសុខភាពល្អ"},
+            {"chinese": "祝你好运", "pinyin": "zhù nǐ hǎo yùn", "khmer": "សូមឲ្យអ្នកមានសំណាងល្អ"},
+            {"chinese": "祝你长命百岁", "pinyin": "zhù nǐ cháng mìng bǎi suì", "khmer": "សូមឲ្យអ្នកមានអាយុយឺនយូរ"},
+            {"chinese": "祝你长寿", "pinyin": "zhù nǐ cháng shòu", "khmer": "សូមឲ្យអ្នកអាយុវែង"},
+            {"chinese": "祝你龙马精神", "pinyin": "zhù nǐ lóng mǎ jīng shén", "khmer": "សូមឲ្យអ្នកមានកម្លាំង និងស្មារតីមាំមួន"},
+            {"chinese": "祝你智慧聪敏", "pinyin": "zhù nǐ zhì huì cōng mǐn", "khmer": "សូមឲ្យអ្នកឆ្លាតវៃ និងមានប្រាជ្ញា"},
+            {"chinese": "祝你早日康复", "pinyin": "zhù nǐ zǎo rì kāng fù", "khmer": "សូមឲ្យអ្នកឆាប់ជាសះស្បើយ"},
+            {"chinese": "祝你学习进步", "pinyin": "zhù nǐ xué xí jìn bù", "khmer": "សូមឲ្យការសិក្សារីកចម្រើន"},
+            {"chinese": "祝你取得好成绩", "pinyin": "zhù nǐ qǔ dé hǎo chéng jì", "khmer": "សូមឲ្យអ្នកទទួលបានលទ្ធផលល្អ"},
+            {"chinese": "祝你工作顺利", "pinyin": "zhù nǐ gōng zuò shùn lì", "khmer": "សូមឲ្យការងាររលូន"},
+            {"chinese": "祝你大吉大利", "pinyin": "zhù nǐ dà jí dà lì", "khmer": "សូមឲ្យមានសំណាងល្អ និងជោគជ័យ"},
+            {"chinese": "祝你青春美丽", "pinyin": "zhù nǐ qīng chūn měi lì", "khmer": "សូមឲ្យនៅក្មេងស្រស់ស្អាតជានិច្ច"},
+            {"chinese": "祝你更年轻", "pinyin": "zhù nǐ gèng nián qīng", "khmer": "សូមឲ្យអ្នកកាន់តែក្មេងជាងមុន"},
+            {"chinese": "祝你万事如意", "pinyin": "zhù nǐ wàn shì rú yì", "khmer": "សូមឲ្យអ្វីៗសម្រេចដូចបំណង"},
+            {"chinese": "心想事成", "pinyin": "xīn xiǎng shì chéng", "khmer": "សូមឲ្យបំណងប្រាថ្នាបានសម្រេច"},
+            {"chinese": "祝贺新郎新娘 相亲相爱", "pinyin": "zhù hè xīn láng xīn niáng xiāng qīn xiāng ài", "khmer": "សូមអបអរសាទរកូនកំលោះ និងកូនក្រមុំ សូមឲ្យស្រឡាញ់គ្នារហូត"}
+        ]
+
+        cny_all_khmer = list(set([item['khmer'] for item in cny_list]))
+        cny_words = []
+        for item in cny_list:
+            correct_ans = item['khmer']
+            distractor_pool = [ans for ans in cny_all_khmer if ans != correct_ans]
+            distractors = rng.sample(distractor_pool, 3)
+            options = [correct_ans] + distractors
+            rng.shuffle(options)
+            cny_words.append((cny_id, item['chinese'], item['pinyin'], correct_ans, json.dumps(options)))
+
         all_words = (greetings_words + numbers_words + food_words + 
                      fruits_part1_words + fruits_part2_words + fruits_part3_words + fruits_part4_words + 
-                     sports_words + colors_words + animals_words)
+                     sports_words + colors_words + animals_words + cny_words)
         cursor.executemany("INSERT INTO words (lesson_id, chinese, pinyin, english, options) VALUES (?, ?, ?, ?, ?)", all_words)
         conn.commit()
 

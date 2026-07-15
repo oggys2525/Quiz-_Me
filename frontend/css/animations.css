@@ -108,3 +108,17 @@
     display: block;
     animation: slideUp 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
+
+/* Scroll Reveal animations for cards */
+.reveal-card {
+    opacity: 0 !important;
+    transform: translateY(30px) scale(0.95) !important;
+    transition: opacity 0.6s cubic-bezier(0.34, 1.56, 0.64, 1), transform 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) !important;
+    will-change: opacity, transform;
+}
+
+.reveal-card.revealed {
+    opacity: 1 !important;
+    transform: translateY(0) scale(1) !important;
+}
+
