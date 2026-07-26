@@ -11,3 +11,7 @@ Thumbs.db
 # IDE settings
 .vscode/
 .idea/
+
+# Database files
+*.db
+backend/database.db
