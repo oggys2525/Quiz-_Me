@@ -116,7 +116,13 @@ def login():
 def get_lessons():
     conn = get_db_connection()
     cursor = conn.cursor()
-    cursor.execute("SELECT * FROM lessons")
+    cursor.execute("""
+        SELECT l.id, l.title, l.description, COUNT(w.id) as word_count 
+        FROM lessons l 
+        LEFT JOIN words w ON l.id = w.lesson_id 
+        GROUP BY l.id, l.title, l.description
+        ORDER BY l.id ASC
+    """)
     lessons = [dict(row) for row in cursor.fetchall()]
     conn.close()
     return jsonify(lessons), 200
@@ -172,6 +178,27 @@ def get_lesson_words(lesson_id):
             word['options'] = json.loads(word['options'])
         except Exception:
             word['options'] = [word['english']] # Fallback
+        words.append(word)
+    conn.close()
+    return jsonify(words), 200
+
+@app.route('/api/words', methods=['GET'])
+def get_all_words():
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    cursor.execute("""
+        SELECT w.id, w.lesson_id, w.chinese, w.pinyin, w.english, w.options, l.title as lesson_title 
+        FROM words w 
+        LEFT JOIN lessons l ON w.lesson_id = l.id
+        ORDER BY w.id ASC
+    """)
+    words = []
+    for row in cursor.fetchall():
+        word = dict(row)
+        try:
+            word['options'] = json.loads(word['options'])
+        except Exception:
+            word['options'] = [word['english']]
         words.append(word)
     conn.close()
     return jsonify(words), 200

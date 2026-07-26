@@ -414,43 +414,36 @@ async function deleteLesson(lessonId, lessonTitle) {
 
 async function refreshWordsList() {
     try {
-        const lessonsResponse = await fetch(`${CONFIG.API_URL}/lessons`);
-        if (!lessonsResponse.ok) throw new Error('Failed to fetch lessons');
-        const lessons = await lessonsResponse.json();
+        const response = await fetch(`${CONFIG.API_URL}/words`);
+        if (!response.ok) throw new Error('Failed to fetch words');
+        const words = await response.json();
         
         if (elements.wordsTableBody) {
             elements.wordsTableBody.innerHTML = '';
-            let totalWords = 0;
             
-            for (const lesson of lessons) {
-                const wordsResponse = await fetch(`${CONFIG.API_URL}/lessons/${lesson.id}/words`);
-                if (!wordsResponse.ok) continue;
-                const words = await wordsResponse.json();
-                
-                words.forEach(word => {
-                    totalWords++;
-                    const row = document.createElement('tr');
-                    row.innerHTML = `
-                        <td><span style="font-family: var(--font-chinese); font-size: 1.15rem; font-weight: bold;">${escapeHtml(word.chinese)}</span></td>
-                        <td><span style="color: var(--pink-primary); font-weight: 500;">${escapeHtml(word.pinyin)}</span></td>
-                        <td><strong>${escapeHtml(word.english)}</strong></td>
-                        <td><span style="color: var(--text-muted); font-size: 0.85rem;">${escapeHtml(lesson.title)}</span></td>
-                        <td style="text-align: right; white-space: nowrap;">
-                            <button class="btn-edit-row btn-action-edit" data-id="${word.id}">Edit</button>
-                            <button class="btn-delete-row btn-action-delete" data-id="${word.id}">Delete</button>
-                        </td>
-                    `;
-                    // Attach event listeners
-                    row.querySelector('.btn-edit-row').addEventListener('click', () => openEditWordModal(word));
-                    row.querySelector('.btn-delete-row').addEventListener('click', () => deleteWord(word.id, word.chinese));
-                    
-                    elements.wordsTableBody.appendChild(row);
-                });
-            }
-            
-            if (totalWords === 0) {
+            if (words.length === 0) {
                 elements.wordsTableBody.innerHTML = '<tr><td colspan="5" style="text-align: center; color: var(--text-muted); padding: 20px;">No words available. Add one above!</td></tr>';
+                return;
             }
+            
+            words.forEach(word => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td><span style="font-family: var(--font-chinese); font-size: 1.15rem; font-weight: bold;">${escapeHtml(word.chinese)}</span></td>
+                    <td><span style="color: var(--pink-primary); font-weight: 500;">${escapeHtml(word.pinyin)}</span></td>
+                    <td><strong>${escapeHtml(word.english)}</strong></td>
+                    <td><span style="color: var(--text-muted); font-size: 0.85rem;">${escapeHtml(word.lesson_title || 'Unassigned')}</span></td>
+                    <td style="text-align: right; white-space: nowrap;">
+                        <button class="btn-edit-row btn-action-edit" data-id="${word.id}">Edit</button>
+                        <button class="btn-delete-row btn-action-delete" data-id="${word.id}">Delete</button>
+                    </td>
+                `;
+                // Attach event listeners
+                row.querySelector('.btn-edit-row').addEventListener('click', () => openEditWordModal(word));
+                row.querySelector('.btn-delete-row').addEventListener('click', () => deleteWord(word.id, word.chinese));
+                
+                elements.wordsTableBody.appendChild(row);
+            });
         }
     } catch (e) {
         console.error('Error listing words:', e);
