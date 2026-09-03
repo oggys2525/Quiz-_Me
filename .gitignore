@@ -15,3 +15,6 @@ Thumbs.db
 # Database files
 *.db
 backend/database.db
+
+# Uploaded files (generated at runtime)
+frontend/uploads/
