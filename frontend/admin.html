@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Quiz Me - Admin Console</title>
     <!-- Google Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -93,10 +93,13 @@
                             <span>👥</span> Manage Users
                         </button>
                         <button id="sidebar-btn-lessons" class="sidebar-menu-item">
-                            <span>📚</span> Manage Lessons
+                            <span>📚</span> Manage Lessons / Cards
                         </button>
                         <button id="sidebar-btn-words" class="sidebar-menu-item">
                             <span>🔤</span> Manage Words
+                        </button>
+                        <button id="sidebar-btn-ai-importer" class="sidebar-menu-item" style="border: 1px dashed rgba(255, 42, 116, 0.4); background: rgba(255, 42, 116, 0.06);">
+                            <span>✨</span> AI Word Importer
                         </button>
                     </nav>
                     
@@ -163,8 +166,10 @@
                                 <table class="admin-table">
                                     <thead>
                                         <tr>
-                                            <th>Lesson Title</th>
+                                            <th style="width: 80px;">Card</th>
+                                            <th>Lesson / Course Title</th>
                                             <th>Description</th>
+                                            <th style="width: 110px;">Words</th>
                                             <th style="text-align: right;">Actions</th>
                                         </tr>
                                     </thead>
@@ -184,11 +189,16 @@
                         </div>
                         
                         <div class="admin-card flex-table-card">
-                            <div class="admin-card-header" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px; border-bottom: 1px solid rgba(255, 255, 255, 0.05); padding-bottom: 12px;">
+                            <div class="admin-card-header" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px; border-bottom: 1px solid rgba(255, 255, 255, 0.05); padding-bottom: 12px; flex-wrap: wrap; gap: 10px;">
                                 <h3 class="admin-card-title" style="margin-bottom: 0; border-bottom: none; padding-bottom: 0;">Vocabulary Word List</h3>
-                                <button id="open-create-word-btn" class="btn-primary" style="padding: 10px 18px; font-size: 0.85rem; display: flex; align-items: center; gap: 8px;">
-                                    <span style="font-size: 1.1rem; line-height: 1;">+</span> Add Word to Lesson
-                                </button>
+                                <div style="display: flex; gap: 10px;">
+                                    <button id="btn-goto-ai-importer" class="btn-secondary" style="padding: 10px 16px; font-size: 0.85rem; display: flex; align-items: center; gap: 8px; border: 1px dashed var(--pink-primary); color: var(--pink-primary);">
+                                        <span>✨</span> Bulk Paste (AI)
+                                    </button>
+                                    <button id="open-create-word-btn" class="btn-primary" style="padding: 10px 18px; font-size: 0.85rem; display: flex; align-items: center; gap: 8px;">
+                                        <span style="font-size: 1.1rem; line-height: 1;">+</span> Add Single Word
+                                    </button>
+                                </div>
                             </div>
                             <div class="admin-table-container">
                                 <table class="admin-table">
@@ -205,6 +215,127 @@
                                         <!-- populated dynamically -->
                                     </tbody>
                                 </table>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- VIEW 4: AI SMART IMPORTER -->
+                    <div id="admin-panel-ai-importer" class="admin-panel-view">
+                        <div class="admin-view-header">
+                            <div style="display: flex; align-items: center; gap: 12px;">
+                                <div style="width: 44px; height: 44px; border-radius: 12px; background: linear-gradient(135deg, var(--pink-primary), #7928ca); display: flex; align-items: center; justify-content: center; font-size: 1.4rem; box-shadow: 0 4px 15px rgba(255, 42, 116, 0.35);">✨</div>
+                                <div>
+                                    <h2 class="admin-view-title" style="margin: 0;">AI Smart Word Importer</h2>
+                                    <p class="admin-view-subtitle" style="margin: 0;">Paste vocabulary lists from ChatGPT, notes, or spreadsheets — AI automatically extracts characters, Pinyin & generates quiz distractors!</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Step 1 & 2 Cards Grid -->
+                        <div class="ai-importer-grid">
+                            <!-- Input & Course Config -->
+                            <div class="admin-card ai-input-card">
+                                <div class="form-group" style="margin-bottom: 18px;">
+                                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+                                        <label class="form-label" style="margin-bottom: 0;">1. Target Lesson / Course:</label>
+                                        <button type="button" id="ai-toggle-create-course" style="background: none; border: none; color: var(--pink-primary); cursor: pointer; font-size: 0.8rem; font-weight: 700;">
+                                            + Create New Course Instead
+                                        </button>
+                                    </div>
+                                    
+                                    <!-- Select Existing Course -->
+                                    <div id="ai-select-course-box" class="select-wrapper">
+                                        <select id="ai-importer-lesson-id" class="select-input" required>
+                                            <option value="">-- Choose a Course / Lesson --</option>
+                                        </select>
+                                        <svg class="select-arrow" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" style="position: absolute; right: 15px; width: 14px; height: 14px; pointer-events: none; color: var(--text-muted);">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M19 9l-7 7-7-7"></path>
+                                        </svg>
+                                    </div>
+
+                                    <!-- Create New Course Inline (Hidden by default) -->
+                                    <div id="ai-create-course-box" style="display: none; background: rgba(255, 42, 116, 0.05); border: 1px dashed rgba(255, 42, 116, 0.35); border-radius: 12px; padding: 15px; margin-top: 8px;">
+                                        <div style="font-weight: 700; color: var(--pink-primary); font-size: 0.85rem; margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center;">
+                                            <span>✨ Create New Course / Lesson:</span>
+                                            <button type="button" id="ai-cancel-new-course" style="background: none; border: none; color: var(--text-muted); cursor: pointer; font-size: 0.75rem;">Use Existing</button>
+                                        </div>
+                                        <div style="display: flex; flex-direction: column; gap: 10px;">
+                                            <input type="text" id="ai-new-course-title" class="form-input" placeholder="Course Title (e.g. Business Chinese 商务中文)">
+                                            <input type="text" id="ai-new-course-desc" class="form-input" placeholder="Description (e.g. Essential phrases for business meetings)">
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="form-group" style="margin-bottom: 18px;">
+                                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                                        <label class="form-label" style="margin-bottom: 0;">2. Paste Vocabulary Words (Chat AI Style):</label>
+                                        <div style="display: flex; gap: 8px;">
+                                            <button type="button" id="ai-btn-load-example" class="btn-chip" style="background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.1); color: var(--text-muted); font-size: 0.75rem; padding: 4px 10px; border-radius: 6px; cursor: pointer; transition: 0.2s;">
+                                                💡 Load Example
+                                            </button>
+                                            <button type="button" id="ai-btn-clear" class="btn-chip" style="background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.1); color: var(--text-muted); font-size: 0.75rem; padding: 4px 10px; border-radius: 6px; cursor: pointer; transition: 0.2s;">
+                                                🧹 Clear
+                                            </button>
+                                        </div>
+                                    </div>
+                                    
+                                    <textarea id="ai-paste-textarea" class="form-input" style="height: 220px; font-family: 'SF Mono', Consolas, Monaco, monospace; font-size: 0.85rem; line-height: 1.55; resize: vertical;" placeholder="Paste vocabulary list here. Any common format works! Examples:
+你好 | nǐ hǎo | hello
+谢谢 (xièxie) - thank you
+苹果 / píng guǒ / Apple (ផ្លែប៉ោម)
+1. 狗 gǒu dog
+2. 猫 māo cat (ឆ្មា)"></textarea>
+                                </div>
+
+                                <div style="display: flex; gap: 12px; flex-wrap: wrap;">
+                                    <button type="button" id="ai-btn-parse" class="btn-primary" style="flex: 1; min-width: 200px; padding: 12px; font-weight: 700; display: flex; align-items: center; justify-content: center; gap: 8px;">
+                                        <span>✨</span> Smart Parse & Generate Quiz Choices
+                                    </button>
+                                </div>
+                            </div>
+
+                            <!-- Live Detection & Preview -->
+                            <div class="admin-card ai-preview-card">
+                                <div class="admin-card-header" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; border-bottom: 1px solid rgba(255, 255, 255, 0.05); padding-bottom: 12px; flex-wrap: wrap; gap: 10px;">
+                                    <div style="display: flex; align-items: center; gap: 10px;">
+                                        <h3 class="admin-card-title" style="margin: 0; border: none; padding: 0;">Detected Words Preview</h3>
+                                        <span id="ai-detected-count-badge" class="badge-count" style="display: none; background: rgba(255, 42, 116, 0.15); border: 1px solid var(--pink-primary); color: var(--pink-primary); font-size: 0.75rem; font-weight: 800; padding: 2px 8px; border-radius: 12px;">0 Words</span>
+                                    </div>
+                                    <button type="button" id="ai-btn-save-all" class="btn-primary" style="display: none; padding: 8px 16px; font-size: 0.85rem; font-weight: 700; gap: 6px;">
+                                        <span>🚀</span> Auto-Set & Save to Course
+                                    </button>
+                                </div>
+
+                                <div id="ai-preview-empty" style="text-align: center; color: var(--text-muted); padding: 50px 20px;">
+                                    <div style="font-size: 3rem; margin-bottom: 12px; opacity: 0.5;">📋</div>
+                                    <div style="font-weight: 600; font-size: 1rem; color: var(--text-white); margin-bottom: 6px;">No words parsed yet</div>
+                                    <div style="font-size: 0.85rem;">Paste vocabulary words on the left and click "Smart Parse & Generate Quiz Choices".</div>
+                                </div>
+
+                                <div id="ai-preview-table-container" class="admin-table-container" style="display: none; max-height: 380px; overflow-y: auto;">
+                                    <table class="admin-table">
+                                        <thead>
+                                            <tr>
+                                                <th style="width: 40px;">#</th>
+                                                <th>Chinese</th>
+                                                <th>Pinyin</th>
+                                                <th>Meaning</th>
+                                                <th>Quiz Options (Auto-Generated)</th>
+                                                <th style="width: 40px; text-align: right;"></th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="ai-preview-table-body">
+                                            <!-- Populated dynamically -->
+                                        </tbody>
+                                    </table>
+                                </div>
+
+                                <div id="ai-save-footer" style="display: none; margin-top: 15px; padding-top: 15px; border-top: 1px solid rgba(255, 255, 255, 0.05); display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;">
+                                    <span id="ai-preview-summary-text" style="font-size: 0.85rem; color: var(--text-muted);">Ready to insert words.</span>
+                                    <button type="button" id="ai-btn-save-all-bottom" class="btn-primary" style="padding: 10px 22px; font-weight: 700; display: flex; align-items: center; gap: 8px;">
+                                        <span>🚀</span> Auto-Set & Save All Words
+                                    </button>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -261,16 +392,38 @@
             </div>
             <form id="add-lesson-form">
                 <div class="form-group">
-                    <label for="lesson-title" class="form-label">Lesson Title</label>
-                    <input type="text" id="lesson-title" class="form-input" placeholder="e.g. Weather (天气)" required>
+                    <label for="lesson-title" class="form-label">Lesson / Course Title</label>
+                    <input type="text" id="lesson-title" class="form-input" placeholder="e.g. Course 1: Weather (天气)" required>
                 </div>
                 <div class="form-group">
-                    <label for="lesson-desc" class="form-label">Description</label>
+                    <label for="lesson-desc" class="form-label">Description / Subtitle</label>
                     <input type="text" id="lesson-desc" class="form-input" placeholder="What does this lesson cover?">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Card Image (Upload image or enter URL)</label>
+                    <div class="card-image-upload-box">
+                        <input type="file" id="lesson-image-file" accept="image/*" style="display: none;">
+                        <div class="dropzone-area" id="lesson-image-dropzone">
+                            <div class="dropzone-idle" id="lesson-image-idle">
+                                <span style="font-size: 1.8rem;">🖼️</span>
+                                <div style="font-weight: 600; font-size: 0.85rem; color: var(--text-white); margin-top: 4px;">Upload Card Image</div>
+                                <div style="font-size: 0.75rem; color: var(--text-muted); margin-top: 2px;">Click to browse file or drag & drop (JPG, PNG, WEBP)</div>
+                            </div>
+                            <div class="dropzone-preview-wrap" id="lesson-image-preview-wrap" style="display: none;">
+                                <img id="lesson-image-preview" src="" alt="Preview" class="dropzone-preview-img">
+                                <button type="button" class="btn-clear-preview" id="btn-clear-lesson-image" title="Remove image">&times;</button>
+                            </div>
+                        </div>
+                        <input type="hidden" id="lesson-image-url">
+                        <div class="image-url-row" style="margin-top: 8px; display: flex; align-items: center; gap: 8px;">
+                            <span style="font-size: 0.75rem; color: var(--text-muted); white-space: nowrap;">Or Image URL:</span>
+                            <input type="url" id="lesson-image-url-input" class="form-input" placeholder="https://..." style="font-size: 0.82rem; padding: 6px 10px;">
+                        </div>
+                    </div>
                 </div>
                 <div class="modal-actions">
                     <button type="button" class="btn-secondary" id="cancel-create-lesson-btn">Cancel</button>
-                    <button type="submit" class="btn-primary">Add Lesson Card</button>
+                    <button type="submit" class="btn-primary" id="btn-submit-create-lesson">Add Lesson Card</button>
                 </div>
             </form>
         </div>
@@ -376,16 +529,38 @@
             <form id="edit-lesson-form">
                 <input type="hidden" id="edit-lesson-id">
                 <div class="form-group">
-                    <label for="edit-lesson-title" class="form-label">Lesson Title</label>
+                    <label for="edit-lesson-title" class="form-label">Lesson / Course Title</label>
                     <input type="text" id="edit-lesson-title" class="form-input" required>
                 </div>
                 <div class="form-group">
-                    <label for="edit-lesson-desc" class="form-label">Description</label>
+                    <label for="edit-lesson-desc" class="form-label">Description / Subtitle</label>
                     <input type="text" id="edit-lesson-desc" class="form-input">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Card Image (Upload image or enter URL)</label>
+                    <div class="card-image-upload-box">
+                        <input type="file" id="edit-lesson-image-file" accept="image/*" style="display: none;">
+                        <div class="dropzone-area" id="edit-lesson-image-dropzone">
+                            <div class="dropzone-idle" id="edit-lesson-image-idle">
+                                <span style="font-size: 1.8rem;">🖼️</span>
+                                <div style="font-weight: 600; font-size: 0.85rem; color: var(--text-white); margin-top: 4px;">Upload / Change Card Image</div>
+                                <div style="font-size: 0.75rem; color: var(--text-muted); margin-top: 2px;">Click to browse file or drag & drop</div>
+                            </div>
+                            <div class="dropzone-preview-wrap" id="edit-lesson-image-preview-wrap" style="display: none;">
+                                <img id="edit-lesson-image-preview" src="" alt="Preview" class="dropzone-preview-img">
+                                <button type="button" class="btn-clear-preview" id="btn-clear-edit-lesson-image" title="Remove image">&times;</button>
+                            </div>
+                        </div>
+                        <input type="hidden" id="edit-lesson-image-url">
+                        <div class="image-url-row" style="margin-top: 8px; display: flex; align-items: center; gap: 8px;">
+                            <span style="font-size: 0.75rem; color: var(--text-muted); white-space: nowrap;">Or Image URL:</span>
+                            <input type="url" id="edit-lesson-image-url-input" class="form-input" placeholder="https://..." style="font-size: 0.82rem; padding: 6px 10px;">
+                        </div>
+                    </div>
                 </div>
                 <div class="modal-actions">
                     <button type="button" class="btn-secondary" id="cancel-edit-lesson-btn">Cancel</button>
-                    <button type="submit" class="btn-primary">Save Changes</button>
+                    <button type="submit" class="btn-primary" id="btn-submit-edit-lesson">Save Changes</button>
                 </div>
             </form>
         </div>

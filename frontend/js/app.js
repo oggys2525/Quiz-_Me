@@ -593,11 +593,29 @@ async function renderLessonsGrid() {
         card.style.border = `2px solid ${border}`;
         card.style.color = text;
         
-        card.innerHTML = `
-            <div class="lesson-card-emoji">${def.emoji}</div>
-            <div class="lesson-card-title">${escapeHtml(topic)}</div>
-            <div class="lesson-card-count">📖 ${wordCount} ${wordCount === 1 ? 'Word' : 'Words'}</div>
-        `;
+        // Find if any matched lesson has an uploaded image
+        const matchedTopicLessons = allLoadedLessons.filter(l => LESSON_TO_TOPIC_MAP[l.title] === topic || l.title === topic);
+        const cardImg = matchedTopicLessons.find(l => l.image_url)?.image_url;
+        
+        if (cardImg) {
+            card.classList.add('has-image');
+            card.innerHTML = `
+                <div class="lesson-card-img-wrapper">
+                    <img src="${escapeHtml(cardImg)}" alt="${escapeHtml(topic)}" class="lesson-card-img" onerror="this.parentElement.style.display='none'; this.closest('.lesson-card').classList.remove('has-image');" />
+                    <div class="lesson-card-img-overlay"></div>
+                </div>
+                <div class="lesson-card-content">
+                    <div class="lesson-card-title">${escapeHtml(topic)}</div>
+                    <div class="lesson-card-count">📖 ${wordCount} ${wordCount === 1 ? 'Word' : 'Words'}</div>
+                </div>
+            `;
+        } else {
+            card.innerHTML = `
+                <div class="lesson-card-emoji">${def.emoji}</div>
+                <div class="lesson-card-title">${escapeHtml(topic)}</div>
+                <div class="lesson-card-count">📖 ${wordCount} ${wordCount === 1 ? 'Word' : 'Words'}</div>
+            `;
+        }
         
         if (lessonCount > 0 && wordCount > 0) {
             card.addEventListener('click', () => {

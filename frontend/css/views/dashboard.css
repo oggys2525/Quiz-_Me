@@ -270,6 +270,58 @@ header {
     box-shadow: 0 16px 32px rgba(0, 0, 0, 0.5), 0 0 20px rgba(255, 42, 116, 0.05);
 }
 
+/* Card Image Styles */
+.lesson-card.has-image {
+    padding: 0;
+    overflow: hidden;
+    position: relative;
+}
+
+.lesson-card-img-wrapper {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 1;
+    overflow: hidden;
+}
+
+.lesson-card-img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.lesson-card:hover .lesson-card-img {
+    transform: scale(1.08);
+}
+
+.lesson-card-img-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(180deg, rgba(15, 17, 26, 0.15) 0%, rgba(15, 17, 26, 0.7) 55%, rgba(15, 17, 26, 0.95) 100%);
+    z-index: 2;
+}
+
+.lesson-card-content {
+    position: relative;
+    z-index: 3;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-end;
+    width: 100%;
+    height: 100%;
+    padding: 22px 16px;
+    gap: 8px;
+    text-align: center;
+}
+
 .lesson-card-emoji {
     font-size: 4rem;
     line-height: 1;

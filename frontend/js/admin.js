@@ -7,6 +7,7 @@ const elements = {
     sidebarBtnUsers: document.getElementById('sidebar-btn-users'),
     sidebarBtnLessons: document.getElementById('sidebar-btn-lessons'),
     sidebarBtnWords: document.getElementById('sidebar-btn-words'),
+    sidebarBtnAiImporter: document.getElementById('sidebar-btn-ai-importer'),
     sidebarBtnExit: document.getElementById('sidebar-btn-exit'),
     sidebarBtnLogout: document.getElementById('sidebar-btn-logout'),
     
@@ -14,6 +15,7 @@ const elements = {
     panelUsers: document.getElementById('admin-panel-users'),
     panelLessons: document.getElementById('admin-panel-lessons'),
     panelWords: document.getElementById('admin-panel-words'),
+    panelAiImporter: document.getElementById('admin-panel-ai-importer'),
     
     // Tables
     usersTableBody: document.getElementById('users-table-body'),
@@ -27,6 +29,7 @@ const elements = {
     
     // Select inputs
     lessonSelect: document.getElementById('word-lesson-id'),
+    aiLessonSelect: document.getElementById('ai-importer-lesson-id'),
     
     // Modals
     editUserModal: document.getElementById('edit-user-modal'),
@@ -46,8 +49,54 @@ const elements = {
     dropdownUsername: document.getElementById('dropdown-username'),
     dropdownRole: document.getElementById('dropdown-role'),
     dropdownPoints: document.getElementById('dropdown-points'),
-    btnLogoutHeader: document.getElementById('btn-logout')
+    btnLogoutHeader: document.getElementById('btn-logout'),
+
+    // Image Upload - Create Lesson
+    lessonImageFile: document.getElementById('lesson-image-file'),
+    lessonImageDropzone: document.getElementById('lesson-image-dropzone'),
+    lessonImageIdle: document.getElementById('lesson-image-idle'),
+    lessonImagePreviewWrap: document.getElementById('lesson-image-preview-wrap'),
+    lessonImagePreview: document.getElementById('lesson-image-preview'),
+    btnClearLessonImage: document.getElementById('btn-clear-lesson-image'),
+    lessonImageUrlInput: document.getElementById('lesson-image-url-input'),
+    lessonImageUrlHidden: document.getElementById('lesson-image-url'),
+
+    // Image Upload - Edit Lesson
+    editLessonImageFile: document.getElementById('edit-lesson-image-file'),
+    editLessonImageDropzone: document.getElementById('edit-lesson-image-dropzone'),
+    editLessonImageIdle: document.getElementById('edit-lesson-image-idle'),
+    editLessonImagePreviewWrap: document.getElementById('edit-lesson-image-preview-wrap'),
+    editLessonImagePreview: document.getElementById('edit-lesson-image-preview'),
+    btnClearEditLessonImage: document.getElementById('btn-clear-edit-lesson-image'),
+    editLessonImageUrlInput: document.getElementById('edit-lesson-image-url-input'),
+    editLessonImageUrlHidden: document.getElementById('edit-lesson-image-url'),
+
+    // AI Importer Elements
+    aiPasteTextarea: document.getElementById('ai-paste-textarea'),
+    aiBtnParse: document.getElementById('ai-btn-parse'),
+    aiBtnClear: document.getElementById('ai-btn-clear'),
+    aiBtnLoadExample: document.getElementById('ai-btn-load-example'),
+    aiToggleCreateCourse: document.getElementById('ai-toggle-create-course'),
+    aiCancelNewCourse: document.getElementById('ai-cancel-new-course'),
+    aiSelectCourseBox: document.getElementById('ai-select-course-box'),
+    aiCreateCourseBox: document.getElementById('ai-create-course-box'),
+    aiNewCourseTitle: document.getElementById('ai-new-course-title'),
+    aiNewCourseDesc: document.getElementById('ai-new-course-desc'),
+    aiPreviewEmpty: document.getElementById('ai-preview-empty'),
+    aiPreviewTableContainer: document.getElementById('ai-preview-table-container'),
+    aiPreviewTableBody: document.getElementById('ai-preview-table-body'),
+    aiDetectedCountBadge: document.getElementById('ai-detected-count-badge'),
+    aiBtnSaveAll: document.getElementById('ai-btn-save-all'),
+    aiBtnSaveAllBottom: document.getElementById('ai-btn-save-all-bottom'),
+    aiSaveFooter: document.getElementById('ai-save-footer'),
+    aiPreviewSummaryText: document.getElementById('ai-preview-summary-text'),
+    btnGotoAiImporter: document.getElementById('btn-goto-ai-importer')
 };
+
+// Global cache for smart distractor generation
+let cachedWordsPool = [];
+let currentParsedWords = [];
+let allLessonsList = [];
 
 // Check authentication immediately
 function checkAuth() {
@@ -87,6 +136,8 @@ export function setupAdminView() {
     if (elements.sidebarBtnUsers) elements.sidebarBtnUsers.addEventListener('click', () => switchAdminView('users'));
     if (elements.sidebarBtnLessons) elements.sidebarBtnLessons.addEventListener('click', () => switchAdminView('lessons'));
     if (elements.sidebarBtnWords) elements.sidebarBtnWords.addEventListener('click', () => switchAdminView('words'));
+    if (elements.sidebarBtnAiImporter) elements.sidebarBtnAiImporter.addEventListener('click', () => switchAdminView('ai-importer'));
+    if (elements.btnGotoAiImporter) elements.btnGotoAiImporter.addEventListener('click', () => switchAdminView('ai-importer'));
     
     if (elements.sidebarBtnExit) {
         elements.sidebarBtnExit.addEventListener('click', () => {
@@ -105,19 +156,15 @@ export function setupAdminView() {
     if (elements.btnLogoutHeader) elements.btnLogoutHeader.addEventListener('click', logoutAction);
     
     // Attach event listeners for admin forms
-    if (elements.addUserForm) {
-        elements.addUserForm.addEventListener('submit', handleAddUser);
-    }
-    if (elements.addLessonForm) {
-        elements.addLessonForm.addEventListener('submit', handleAddLesson);
-    }
-    if (elements.addWordForm) {
-        elements.addWordForm.addEventListener('submit', handleAddWord);
-    }
+    if (elements.addUserForm) elements.addUserForm.addEventListener('submit', handleAddUser);
+    if (elements.addLessonForm) elements.addLessonForm.addEventListener('submit', handleAddLesson);
+    if (elements.addWordForm) elements.addWordForm.addEventListener('submit', handleAddWord);
     
     // Attach modal close/cancel listeners
     setupModalListeners();
     setupProfileDropdown();
+    setupDropzones();
+    setupAiImporter();
 }
 
 function setupProfileDropdown() {
@@ -145,12 +192,12 @@ function switchAdminView(viewName) {
     }
 
     // Reset active sidebar items
-    [elements.sidebarBtnUsers, elements.sidebarBtnLessons, elements.sidebarBtnWords].forEach(btn => {
+    [elements.sidebarBtnUsers, elements.sidebarBtnLessons, elements.sidebarBtnWords, elements.sidebarBtnAiImporter].forEach(btn => {
         if (btn) btn.classList.remove('active');
     });
     
     // Hide all view panels
-    [elements.panelUsers, elements.panelLessons, elements.panelWords].forEach(panel => {
+    [elements.panelUsers, elements.panelLessons, elements.panelWords, elements.panelAiImporter].forEach(panel => {
         if (panel) panel.classList.remove('active');
     });
     
@@ -167,6 +214,10 @@ function switchAdminView(viewName) {
         if (elements.sidebarBtnWords) elements.sidebarBtnWords.classList.add('active');
         if (elements.panelWords) elements.panelWords.classList.add('active');
         refreshWordsList();
+    } else if (viewName === 'ai-importer') {
+        if (elements.sidebarBtnAiImporter) elements.sidebarBtnAiImporter.classList.add('active');
+        if (elements.panelAiImporter) elements.panelAiImporter.classList.add('active');
+        refreshLessonsList();
     }
 }
 
@@ -203,36 +254,36 @@ async function refreshUsersList() {
         const response = await fetch(`${CONFIG.API_URL}/users`, {
             headers: { 'X-User-Role': user.role }
         });
-        if (!response.ok) throw new Error('Failed to load users');
+        if (!response.ok) throw new Error('Failed to fetch users');
         const users = await response.json();
         
         if (elements.usersTableBody) {
             elements.usersTableBody.innerHTML = '';
+            
+            if (users.length === 0) {
+                elements.usersTableBody.innerHTML = '<tr><td colspan="4" style="text-align: center; color: var(--text-muted); padding: 20px;">No user accounts found.</td></tr>';
+                return;
+            }
+            
             users.forEach(u => {
                 const row = document.createElement('tr');
                 row.innerHTML = `
                     <td><strong>${escapeHtml(u.username)}</strong></td>
-                    <td>
-                        <span class="user-role-badge role-${u.role}">${escapeHtml(u.role.toUpperCase())}</span>
-                    </td>
-                    <td><span style="font-weight: 700; color: #fbbf24;">🔥 ${u.points}</span></td>
+                    <td><span class="badge ${u.role === 'admin' ? 'badge-admin' : 'badge-user'}">${u.role.toUpperCase()}</span></td>
+                    <td><strong>${u.points}</strong> pts</td>
                     <td style="text-align: right; white-space: nowrap;">
                         <button class="btn-edit-row btn-action-edit" data-id="${u.id}">Edit</button>
-                        <button class="btn-delete-row btn-action-delete" data-id="${u.id}" ${u.id === user.id ? 'disabled style="opacity: 0.5; cursor: not-allowed;"' : ''}>Delete</button>
+                        <button class="btn-delete-row btn-action-delete" data-id="${u.id}">Delete</button>
                     </td>
                 `;
-                
-                // Attach event listeners
                 row.querySelector('.btn-edit-row').addEventListener('click', () => openEditUserModal(u));
-                if (u.id !== user.id) {
-                    row.querySelector('.btn-delete-row').addEventListener('click', () => deleteUser(u.id, u.username));
-                }
+                row.querySelector('.btn-delete-row').addEventListener('click', () => deleteUser(u.id, u.username));
                 
                 elements.usersTableBody.appendChild(row);
             });
         }
     } catch (e) {
-        console.error('Error fetching users:', e);
+        console.error('Error loading users:', e);
     }
 }
 
@@ -296,6 +347,123 @@ async function deleteUser(userId, username) {
     }
 }
 
+// ================= IMAGE UPLOAD HANDLING =================
+
+async function uploadImageFile(file) {
+    const user = getSessionUser();
+    if (!user) throw new Error('Unauthorized');
+    
+    const formData = new FormData();
+    formData.append('file', file);
+    
+    const response = await fetch(`${CONFIG.API_URL}/upload`, {
+        method: 'POST',
+        headers: { 'X-User-Role': user.role },
+        body: formData
+    });
+    
+    const data = await response.json();
+    if (!response.ok) throw new Error(data.error || 'Failed to upload image file');
+    return data.url;
+}
+
+function setupDropzones() {
+    // 1. Create Lesson Dropzone
+    setupSingleDropzone({
+        fileInput: elements.lessonImageFile,
+        dropzone: elements.lessonImageDropzone,
+        idleWrap: elements.lessonImageIdle,
+        previewWrap: elements.lessonImagePreviewWrap,
+        previewImg: elements.lessonImagePreview,
+        clearBtn: elements.btnClearLessonImage,
+        urlInput: elements.lessonImageUrlInput,
+        hiddenUrl: elements.lessonImageUrlHidden
+    });
+
+    // 2. Edit Lesson Dropzone
+    setupSingleDropzone({
+        fileInput: elements.editLessonImageFile,
+        dropzone: elements.editLessonImageDropzone,
+        idleWrap: elements.editLessonImageIdle,
+        previewWrap: elements.editLessonImagePreviewWrap,
+        previewImg: elements.editLessonImagePreview,
+        clearBtn: elements.btnClearEditLessonImage,
+        urlInput: elements.editLessonImageUrlInput,
+        hiddenUrl: elements.editLessonImageUrlHidden
+    });
+}
+
+function setupSingleDropzone(cfg) {
+    if (!cfg.dropzone || !cfg.fileInput) return;
+
+    cfg.dropzone.addEventListener('click', (e) => {
+        if (e.target === cfg.clearBtn || cfg.clearBtn.contains(e.target)) return;
+        cfg.fileInput.click();
+    });
+
+    cfg.dropzone.addEventListener('dragover', (e) => {
+        e.preventDefault();
+        cfg.dropzone.classList.add('dragover');
+    });
+
+    cfg.dropzone.addEventListener('dragleave', () => {
+        cfg.dropzone.classList.remove('dragover');
+    });
+
+    cfg.dropzone.addEventListener('drop', (e) => {
+        e.preventDefault();
+        cfg.dropzone.classList.remove('dragover');
+        if (e.dataTransfer.files && e.dataTransfer.files[0]) {
+            cfg.fileInput.files = e.dataTransfer.files;
+            handleFileSelect(e.dataTransfer.files[0], cfg);
+        }
+    });
+
+    cfg.fileInput.addEventListener('change', () => {
+        if (cfg.fileInput.files && cfg.fileInput.files[0]) {
+            handleFileSelect(cfg.fileInput.files[0], cfg);
+        }
+    });
+
+    if (cfg.clearBtn) {
+        cfg.clearBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            resetDropzone(cfg);
+        });
+    }
+
+    if (cfg.urlInput) {
+        cfg.urlInput.addEventListener('input', () => {
+            const url = cfg.urlInput.value.trim();
+            if (url) {
+                cfg.previewImg.src = url;
+                cfg.previewWrap.style.display = 'flex';
+                cfg.idleWrap.style.display = 'none';
+                cfg.hiddenUrl.value = url;
+            } else {
+                resetDropzone(cfg);
+            }
+        });
+    }
+}
+
+function handleFileSelect(file, cfg) {
+    const objectUrl = URL.createObjectURL(file);
+    cfg.previewImg.src = objectUrl;
+    cfg.previewWrap.style.display = 'flex';
+    cfg.idleWrap.style.display = 'none';
+    if (cfg.urlInput) cfg.urlInput.value = '';
+}
+
+function resetDropzone(cfg) {
+    if (cfg.fileInput) cfg.fileInput.value = '';
+    if (cfg.urlInput) cfg.urlInput.value = '';
+    if (cfg.hiddenUrl) cfg.hiddenUrl.value = '';
+    if (cfg.previewImg) cfg.previewImg.src = '';
+    if (cfg.previewWrap) cfg.previewWrap.style.display = 'none';
+    if (cfg.idleWrap) cfg.idleWrap.style.display = 'flex';
+}
+
 // ================= LESSONS MANAGEMENT =================
 
 async function refreshLessonsList() {
@@ -303,35 +471,58 @@ async function refreshLessonsList() {
         const response = await fetch(`${CONFIG.API_URL}/lessons`);
         if (!response.ok) throw new Error('Failed to load lessons');
         const lessons = await response.json();
+        allLessonsList = lessons;
         
-        // Populate the dropdown in word form
-        if (elements.lessonSelect) {
-            elements.lessonSelect.innerHTML = '<option value="">-- Select a Lesson --</option>';
-            lessons.forEach(lesson => {
-                const opt = document.createElement('option');
-                opt.value = lesson.id;
-                opt.textContent = lesson.title;
-                elements.lessonSelect.appendChild(opt);
-            });
-        }
+        // Populate dropdowns in single-word form and AI importer
+        [elements.lessonSelect, elements.aiLessonSelect].forEach(sel => {
+            if (sel) {
+                const currentVal = sel.value;
+                sel.innerHTML = '<option value="">-- Choose a Course / Lesson --</option>';
+                lessons.forEach(lesson => {
+                    const opt = document.createElement('option');
+                    opt.value = lesson.id;
+                    opt.textContent = `${lesson.title} (${lesson.word_count || 0} words)`;
+                    sel.appendChild(opt);
+                });
+                if (currentVal) sel.value = currentVal;
+            }
+        });
         
         // Populate lessons table
         if (elements.lessonsTableBody) {
             elements.lessonsTableBody.innerHTML = '';
             if (lessons.length === 0) {
-                elements.lessonsTableBody.innerHTML = '<tr><td colspan="3" style="text-align: center; color: var(--text-muted); padding: 20px;">No lessons available. Add one above!</td></tr>';
+                elements.lessonsTableBody.innerHTML = '<tr><td colspan="5" style="text-align: center; color: var(--text-muted); padding: 20px;">No lessons available. Add one above!</td></tr>';
             } else {
                 lessons.forEach(lesson => {
                     const row = document.createElement('tr');
+                    
+                    const thumbHtml = lesson.image_url 
+                        ? `<img src="${escapeHtml(lesson.image_url)}" class="admin-lesson-thumb" onerror="this.outerHTML='<div class=\\'admin-lesson-thumb-fallback\\'>📖</div>';" />`
+                        : `<div class="admin-lesson-thumb-fallback">📖</div>`;
+                        
                     row.innerHTML = `
+                        <td>${thumbHtml}</td>
                         <td><strong>${escapeHtml(lesson.title)}</strong></td>
-                        <td>${escapeHtml(lesson.description || '-')}</td>
+                        <td style="color: var(--text-muted); font-size: 0.85rem; max-width: 250px;">${escapeHtml(lesson.description || '-')}</td>
+                        <td><span style="background: rgba(255, 42, 116, 0.12); color: var(--pink-primary); border: 1px solid rgba(255, 42, 116, 0.25); padding: 3px 8px; border-radius: 12px; font-weight: 700; font-size: 0.75rem;">${lesson.word_count || 0} Words</span></td>
                         <td style="text-align: right; white-space: nowrap;">
+                            <button class="btn-action-addwords" data-id="${lesson.id}"><span>✨</span> + Add Words (AI)</button>
                             <button class="btn-edit-row btn-action-edit" data-id="${lesson.id}">Edit</button>
                             <button class="btn-delete-row btn-action-delete" data-id="${lesson.id}">Delete</button>
                         </td>
                     `;
+                    
                     // Attach event listeners
+                    row.querySelector('.btn-action-addwords').addEventListener('click', () => {
+                        switchAdminView('ai-importer');
+                        if (elements.aiLessonSelect) {
+                            elements.aiLessonSelect.value = lesson.id;
+                        }
+                        if (elements.aiPasteTextarea) {
+                            elements.aiPasteTextarea.focus();
+                        }
+                    });
                     row.querySelector('.btn-edit-row').addEventListener('click', () => openEditLessonModal(lesson));
                     row.querySelector('.btn-delete-row').addEventListener('click', () => deleteLesson(lesson.id, lesson.title));
                     
@@ -351,20 +542,35 @@ async function handleAddLesson(event) {
 
     const titleInput = document.getElementById('lesson-title');
     const descInput = document.getElementById('lesson-desc');
+    const submitBtn = document.getElementById('btn-submit-create-lesson');
     
     const title = titleInput.value.trim();
     const description = descInput.value.trim();
     
     if (!title) return;
     
+    let imageUrl = '';
+    
     try {
+        if (submitBtn) {
+            submitBtn.disabled = true;
+            submitBtn.textContent = 'Saving Course...';
+        }
+
+        // Upload file if selected
+        if (elements.lessonImageFile && elements.lessonImageFile.files && elements.lessonImageFile.files[0]) {
+            imageUrl = await uploadImageFile(elements.lessonImageFile.files[0]);
+        } else if (elements.lessonImageUrlInput && elements.lessonImageUrlInput.value.trim()) {
+            imageUrl = elements.lessonImageUrlInput.value.trim();
+        }
+        
         const response = await fetch(`${CONFIG.API_URL}/lessons`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
                 'X-User-Role': user.role
             },
-            body: JSON.stringify({ title, description })
+            body: JSON.stringify({ title, description, image_url: imageUrl })
         });
         
         const data = await response.json();
@@ -374,16 +580,111 @@ async function handleAddLesson(event) {
         
         titleInput.value = '';
         descInput.value = '';
+        resetDropzone({
+            fileInput: elements.lessonImageFile,
+            urlInput: elements.lessonImageUrlInput,
+            hiddenUrl: elements.lessonImageUrlHidden,
+            previewImg: elements.lessonImagePreview,
+            previewWrap: elements.lessonImagePreviewWrap,
+            idleWrap: elements.lessonImageIdle
+        });
+        
         await refreshLessonsList();
         closeAdminModal('create-lesson-modal');
-        alert('Lesson Card added successfully!');
+        alert('Lesson Card created successfully!');
     } catch (error) {
         alert(error.message);
+    } finally {
+        if (submitBtn) {
+            submitBtn.disabled = false;
+            submitBtn.textContent = 'Add Lesson Card';
+        }
+    }
+}
+
+function openEditLessonModal(lesson) {
+    if (!elements.editLessonModal) return;
+    
+    document.getElementById('edit-lesson-id').value = lesson.id;
+    document.getElementById('edit-lesson-title').value = lesson.title;
+    document.getElementById('edit-lesson-desc').value = lesson.description || '';
+    
+    // Set existing image preview if available
+    const existingUrl = lesson.image_url || '';
+    if (elements.editLessonImageUrlHidden) elements.editLessonImageUrlHidden.value = existingUrl;
+    if (elements.editLessonImageUrlInput) elements.editLessonImageUrlInput.value = existingUrl;
+    
+    if (existingUrl) {
+        elements.editLessonImagePreview.src = existingUrl;
+        elements.editLessonImagePreviewWrap.style.display = 'flex';
+        elements.editLessonImageIdle.style.display = 'none';
+    } else {
+        resetDropzone({
+            fileInput: elements.editLessonImageFile,
+            urlInput: elements.editLessonImageUrlInput,
+            hiddenUrl: elements.editLessonImageUrlHidden,
+            previewImg: elements.editLessonImagePreview,
+            previewWrap: elements.editLessonImagePreviewWrap,
+            idleWrap: elements.editLessonImageIdle
+        });
+    }
+    
+    elements.editLessonModal.style.display = 'flex';
+}
+
+async function handleEditLesson(event) {
+    event.preventDefault();
+    const user = getSessionUser();
+    if (!user) return;
+    
+    const lessonId = document.getElementById('edit-lesson-id').value;
+    const title = document.getElementById('edit-lesson-title').value.trim();
+    const description = document.getElementById('edit-lesson-desc').value.trim();
+    const submitBtn = document.getElementById('btn-submit-edit-lesson');
+    
+    if (!title) return;
+    
+    let imageUrl = elements.editLessonImageUrlHidden ? elements.editLessonImageUrlHidden.value : '';
+    
+    try {
+        if (submitBtn) {
+            submitBtn.disabled = true;
+            submitBtn.textContent = 'Updating...';
+        }
+
+        // Check if new file selected
+        if (elements.editLessonImageFile && elements.editLessonImageFile.files && elements.editLessonImageFile.files[0]) {
+            imageUrl = await uploadImageFile(elements.editLessonImageFile.files[0]);
+        } else if (elements.editLessonImageUrlInput && elements.editLessonImageUrlInput.value.trim()) {
+            imageUrl = elements.editLessonImageUrlInput.value.trim();
+        }
+        
+        const response = await fetch(`${CONFIG.API_URL}/lessons/${lessonId}`, {
+            method: 'PUT',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-User-Role': user.role
+            },
+            body: JSON.stringify({ title, description, image_url: imageUrl })
+        });
+        const data = await response.json();
+        if (!response.ok) throw new Error(data.error || 'Failed to update lesson');
+        
+        closeAdminModal('edit-lesson-modal');
+        await refreshLessonsList();
+        alert('Lesson Card updated successfully!');
+    } catch (e) {
+        alert(e.message);
+    } finally {
+        if (submitBtn) {
+            submitBtn.disabled = false;
+            submitBtn.textContent = 'Save Changes';
+        }
     }
 }
 
 async function deleteLesson(lessonId, lessonTitle) {
-    if (!confirm(`Are you sure you want to delete the lesson "${lessonTitle}"? This will ALSO delete all Chinese words associated with this lesson!`)) {
+    if (!confirm(`Are you sure you want to delete "${lessonTitle}"? This will ALSO delete all vocabulary words in this lesson!`)) {
         return;
     }
     
@@ -417,6 +718,9 @@ async function refreshWordsList() {
         const response = await fetch(`${CONFIG.API_URL}/words`);
         if (!response.ok) throw new Error('Failed to fetch words');
         const words = await response.json();
+        
+        // Cache pool of definitions for distractor generation
+        cachedWordsPool = words.map(w => w.english).filter(Boolean);
         
         if (elements.wordsTableBody) {
             elements.wordsTableBody.innerHTML = '';
@@ -475,7 +779,6 @@ async function handleAddWord(event) {
     }
     
     const options = [opt1, opt2, opt3, opt4];
-    // Ensure English is one of the options
     if (!options.map(o => o.toLowerCase()).includes(english.toLowerCase())) {
         alert(`Warning: The English answer ("${english}") must be one of the four multiple-choice options!`);
         return;
@@ -542,6 +845,406 @@ async function deleteWord(wordId, chineseWord) {
         await refreshWordsList();
     } catch (e) {
         alert(e.message);
+    }
+}
+
+function openEditWordModal(word) {
+    if (!elements.editWordModal) return;
+    
+    document.getElementById('edit-word-id').value = word.id;
+    document.getElementById('edit-word-lesson-id').value = word.lesson_id;
+    document.getElementById('edit-word-chinese').value = word.chinese;
+    document.getElementById('edit-word-pinyin').value = word.pinyin;
+    document.getElementById('edit-word-english').value = word.english;
+    
+    let options = [];
+    try {
+        options = typeof word.options === 'string' ? JSON.parse(word.options) : word.options;
+    } catch (e) {
+        options = [word.english, '', '', ''];
+    }
+    
+    document.getElementById('edit-word-opt-1').value = options[0] || '';
+    document.getElementById('edit-word-opt-2').value = options[1] || '';
+    document.getElementById('edit-word-opt-3').value = options[2] || '';
+    document.getElementById('edit-word-opt-4').value = options[3] || '';
+    
+    elements.editWordModal.style.display = 'flex';
+}
+
+async function handleEditWord(event) {
+    event.preventDefault();
+    const user = getSessionUser();
+    if (!user) return;
+    
+    const wordId = document.getElementById('edit-word-id').value;
+    const chinese = document.getElementById('edit-word-chinese').value.trim();
+    const pinyin = document.getElementById('edit-word-pinyin').value.trim();
+    const english = document.getElementById('edit-word-english').value.trim();
+    
+    const opt1 = document.getElementById('edit-word-opt-1').value.trim();
+    const opt2 = document.getElementById('edit-word-opt-2').value.trim();
+    const opt3 = document.getElementById('edit-word-opt-3').value.trim();
+    const opt4 = document.getElementById('edit-word-opt-4').value.trim();
+    
+    if (!chinese || !pinyin || !english || !opt1 || !opt2 || !opt3 || !opt4) {
+        alert('All fields are required.');
+        return;
+    }
+    
+    const options = [opt1, opt2, opt3, opt4];
+    if (!options.map(o => o.toLowerCase()).includes(english.toLowerCase())) {
+        alert(`Warning: The English answer ("${english}") must be one of the four options!`);
+        return;
+    }
+    
+    try {
+        const response = await fetch(`${CONFIG.API_URL}/words/${wordId}`, {
+            method: 'PUT',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-User-Role': user.role
+            },
+            body: JSON.stringify({ chinese, pinyin, english, options })
+        });
+        const data = await response.json();
+        if (!response.ok) throw new Error(data.error || 'Failed to update word');
+        
+        closeAdminModal('edit-word-modal');
+        await refreshWordsList();
+        alert('Word definition updated successfully!');
+    } catch (e) {
+        alert(e.message);
+    }
+}
+
+// ================= AI SMART IMPORTER (CHAT AI PASTE) =================
+
+function setupAiImporter() {
+    if (elements.aiBtnParse) {
+        elements.aiBtnParse.addEventListener('click', handleAiParse);
+    }
+
+    if (elements.aiBtnClear) {
+        elements.aiBtnClear.addEventListener('click', () => {
+            if (elements.aiPasteTextarea) elements.aiPasteTextarea.value = '';
+            clearAiPreview();
+        });
+    }
+
+    if (elements.aiBtnLoadExample) {
+        elements.aiBtnLoadExample.addEventListener('click', () => {
+            if (elements.aiPasteTextarea) {
+                elements.aiPasteTextarea.value = 
+`早上好 | zǎoshang hǎo | Good morning (អរុណសួស្តី)
+晚上好 | wǎnshang hǎo | Good evening (រាត្រីសួស្តី)
+谢谢 (xièxie) - Thank you (អរគុណ)
+不客气 (bú kèqi) - You're welcome (មិនអីទេ)
+1. 苹果 / píngguǒ / Apple (ផ្លែប៉ោម)
+2. 西瓜 / xīguā / Watermelon (ឪឡឹក)
+3. 喝茶 / hē chá / Drink tea (ផឹកតែ)`;
+                handleAiParse();
+            }
+        });
+    }
+
+    if (elements.aiToggleCreateCourse) {
+        elements.aiToggleCreateCourse.addEventListener('click', () => {
+            elements.aiSelectCourseBox.style.display = 'none';
+            elements.aiCreateCourseBox.style.display = 'block';
+            elements.aiToggleCreateCourse.style.display = 'none';
+        });
+    }
+
+    if (elements.aiCancelNewCourse) {
+        elements.aiCancelNewCourse.addEventListener('click', () => {
+            elements.aiSelectCourseBox.style.display = 'block';
+            elements.aiCreateCourseBox.style.display = 'none';
+            elements.aiToggleCreateCourse.style.display = 'inline-block';
+        });
+    }
+
+    const saveAction = () => handleAiSaveAll();
+    if (elements.aiBtnSaveAll) elements.aiBtnSaveAll.addEventListener('click', saveAction);
+    if (elements.aiBtnSaveAllBottom) elements.aiBtnSaveAllBottom.addEventListener('click', saveAction);
+}
+
+function clearAiPreview() {
+    currentParsedWords = [];
+    if (elements.aiPreviewEmpty) elements.aiPreviewEmpty.style.display = 'block';
+    if (elements.aiPreviewTableContainer) elements.aiPreviewTableContainer.style.display = 'none';
+    if (elements.aiDetectedCountBadge) elements.aiDetectedCountBadge.style.display = 'none';
+    if (elements.aiBtnSaveAll) elements.aiBtnSaveAll.style.display = 'none';
+    if (elements.aiSaveFooter) elements.aiSaveFooter.style.display = 'none';
+    if (elements.aiPreviewTableBody) elements.aiPreviewTableBody.innerHTML = '';
+}
+
+function parseVocabularyLine(rawLine) {
+    let line = rawLine.trim();
+    if (!line) return null;
+
+    // Remove leading list numbers e.g. "1.", "1)", "- ", "* ", "• "
+    line = line.replace(/^[\d]+[\.\)]\s*/, '').replace(/^[-*•]\s*/, '').trim();
+    if (!line) return null;
+
+    let chinese = '';
+    let pinyin = '';
+    let english = '';
+
+    // Strategy 1: Check for explicit delimiters: | or \t or /
+    const delimiters = ['|', '\t', '/'];
+    for (const d of delimiters) {
+        if (line.includes(d)) {
+            const parts = line.split(d).map(p => p.trim()).filter(Boolean);
+            if (parts.length >= 3) {
+                chinese = parts[0];
+                pinyin = parts[1];
+                english = parts.slice(2).join(' / ');
+                return { chinese, pinyin, english };
+            } else if (parts.length === 2) {
+                chinese = parts[0];
+                english = parts[1];
+                // Pinyin might be in parentheses inside chinese or english
+                const pyMatch = (chinese + ' ' + english).match(/\(([^)]+)\)/);
+                if (pyMatch) {
+                    pinyin = pyMatch[1];
+                    chinese = chinese.replace(/\([^)]+\)/, '').trim();
+                    english = english.replace(/\([^)]+\)/, '').trim();
+                }
+                return { chinese, pinyin, english };
+            }
+        }
+    }
+
+    // Strategy 2: Chinese characters extraction using Unicode regex [\u4e00-\u9fa5]+
+    const chineseMatch = line.match(/[\u4e00-\u9fa5]{1,10}/);
+    if (chineseMatch) {
+        chinese = chineseMatch[0];
+        
+        // Remove Chinese from line to parse remaining
+        let remainder = line.replace(chinese, ' ').trim();
+        
+        // Check for pinyin in parentheses: (nǐ hǎo) or [nǐ hǎo]
+        const pinyinBracketMatch = remainder.match(/[\(\[]([a-zA-Zāáǎàēéěèīíǐìōóǒòūúǔùǖǘǚǜü\s]+)[\)\]]/i);
+        if (pinyinBracketMatch) {
+            pinyin = pinyinBracketMatch[1].trim();
+            remainder = remainder.replace(pinyinBracketMatch[0], ' ').trim();
+        }
+
+        // Clean up separators like -, :, =, etc. from remaining text
+        remainder = remainder.replace(/^[\s\-:=—]+/, '').trim();
+
+        // If pinyin still empty, check if first token of remainder is Latin pinyin
+        if (!pinyin) {
+            const tokens = remainder.split(/\s+/);
+            if (tokens.length >= 2 && /^[a-zA-Zāáǎàēéěèīíǐìōóǒòūúǔùǖǘǚǜü]+$/i.test(tokens[0])) {
+                pinyin = tokens[0];
+                remainder = tokens.slice(1).join(' ');
+            }
+        }
+
+        english = remainder.replace(/^[\s\-:=—]+/, '').trim();
+        return { chinese, pinyin, english };
+    }
+
+    return null;
+}
+
+function handleAiParse() {
+    if (!elements.aiPasteTextarea) return;
+    const text = elements.aiPasteTextarea.value.trim();
+    if (!text) {
+        alert('Please paste some vocabulary words first!');
+        return;
+    }
+
+    const lines = text.split('\n');
+    const parsed = [];
+
+    lines.forEach(rawLine => {
+        const item = parseVocabularyLine(rawLine);
+        if (item && item.chinese && item.english) {
+            // Normalize pinyin if missing
+            if (!item.pinyin) item.pinyin = item.chinese;
+            parsed.push(item);
+        }
+    });
+
+    if (parsed.length === 0) {
+        alert('Could not detect vocabulary words from the text. Try using formats like:\n\n你好 | nǐ hǎo | hello\n谢谢 (xièxie) - thank you');
+        return;
+    }
+
+    // Generate smart quiz options for each parsed word
+    const batchEnglishList = parsed.map(p => p.english);
+    const combinedCandidatePool = Array.from(new Set([...cachedWordsPool, ...batchEnglishList]));
+
+    parsed.forEach((item, idx) => {
+        const otherDistractors = combinedCandidatePool.filter(ans => ans.toLowerCase() !== item.english.toLowerCase());
+        let distractors = [];
+        
+        // Pick 3 random distractors
+        const shuffled = [...otherDistractors].sort(() => 0.5 - Math.random());
+        distractors = shuffled.slice(0, 3);
+        
+        // Fallbacks if pool is too small
+        const defaultFallbacks = ['Yes', 'No', 'Good', 'Water', 'Friend', 'Book', 'Go'];
+        for (const fb of defaultFallbacks) {
+            if (distractors.length >= 3) break;
+            if (fb.toLowerCase() !== item.english.toLowerCase() && !distractors.includes(fb)) {
+                distractors.push(fb);
+            }
+        }
+
+        const options = [item.english, ...distractors].sort(() => 0.5 - Math.random());
+        item.options = options;
+    });
+
+    currentParsedWords = parsed;
+    renderAiPreview(parsed);
+}
+
+function renderAiPreview(words) {
+    if (!elements.aiPreviewTableBody) return;
+
+    elements.aiPreviewTableBody.innerHTML = '';
+
+    words.forEach((w, idx) => {
+        const row = document.createElement('tr');
+        row.innerHTML = `
+            <td style="color: var(--text-muted); font-size: 0.8rem;">${idx + 1}</td>
+            <td><span style="font-family: var(--font-chinese); font-size: 1.25rem; font-weight: bold; color: var(--text-white);">${escapeHtml(w.chinese)}</span></td>
+            <td><span style="color: var(--pink-primary); font-weight: 600;">${escapeHtml(w.pinyin)}</span></td>
+            <td><strong>${escapeHtml(w.english)}</strong></td>
+            <td>
+                <div class="options-preview-wrap">
+                    ${w.options.map(opt => `
+                        <span class="quiz-opt-pill ${opt.toLowerCase() === w.english.toLowerCase() ? 'correct' : ''}">
+                            ${opt.toLowerCase() === w.english.toLowerCase() ? '✓ ' : ''}${escapeHtml(opt)}
+                        </span>
+                    `).join('')}
+                </div>
+            </td>
+            <td style="text-align: right;">
+                <button type="button" class="btn-remove-preview" data-index="${idx}" style="position: static; width: 22px; height: 22px; font-size: 0.9rem;" title="Remove this word">&times;</button>
+            </td>
+        `;
+
+        row.querySelector('.btn-remove-preview').addEventListener('click', (e) => {
+            const index = parseInt(e.currentTarget.dataset.index);
+            currentParsedWords.splice(index, 1);
+            renderAiPreview(currentParsedWords);
+        });
+
+        elements.aiPreviewTableBody.appendChild(row);
+    });
+
+    // Update UI headers & counts
+    if (elements.aiPreviewEmpty) elements.aiPreviewEmpty.style.display = words.length === 0 ? 'block' : 'none';
+    if (elements.aiPreviewTableContainer) elements.aiPreviewTableContainer.style.display = words.length > 0 ? 'block' : 'none';
+    
+    if (elements.aiDetectedCountBadge) {
+        elements.aiDetectedCountBadge.style.display = words.length > 0 ? 'inline-block' : 'none';
+        elements.aiDetectedCountBadge.textContent = `${words.length} Words`;
+    }
+
+    if (elements.aiBtnSaveAll) elements.aiBtnSaveAll.style.display = words.length > 0 ? 'inline-flex' : 'none';
+    if (elements.aiSaveFooter) elements.aiSaveFooter.style.display = words.length > 0 ? 'flex' : 'none';
+    
+    if (elements.aiPreviewSummaryText) {
+        elements.aiPreviewSummaryText.textContent = `✨ ${words.length} vocabulary words ready to be set to your course.`;
+    }
+}
+
+async function handleAiSaveAll() {
+    const user = getSessionUser();
+    if (!user) return;
+
+    if (!currentParsedWords || currentParsedWords.length === 0) {
+        alert('Please parse words first before saving.');
+        return;
+    }
+
+    let targetLessonId = null;
+    let targetLessonTitle = '';
+
+    const isCreatingNewCourse = elements.aiCreateCourseBox && elements.aiCreateCourseBox.style.display !== 'none';
+
+    try {
+        // Option A: Create New Course Inline
+        if (isCreatingNewCourse) {
+            const newTitle = elements.aiNewCourseTitle ? elements.aiNewCourseTitle.value.trim() : '';
+            const newDesc = elements.aiNewCourseDesc ? elements.aiNewCourseDesc.value.trim() : '';
+
+            if (!newTitle) {
+                alert('Please enter a Title for the new Course / Lesson!');
+                if (elements.aiNewCourseTitle) elements.aiNewCourseTitle.focus();
+                return;
+            }
+
+            const courseResp = await fetch(`${CONFIG.API_URL}/lessons`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-User-Role': user.role
+                },
+                body: JSON.stringify({ title: newTitle, description: newDesc })
+            });
+            const courseData = await courseResp.json();
+            if (!courseResp.ok) throw new Error(courseData.error || 'Failed to create new course');
+            
+            targetLessonId = courseData.id;
+            targetLessonTitle = courseData.title;
+        } else {
+            // Option B: Use Selected Course
+            if (!elements.aiLessonSelect || !elements.aiLessonSelect.value) {
+                alert('Please choose a Target Course / Lesson from the dropdown (or click "+ Create New Course Instead")!');
+                if (elements.aiLessonSelect) elements.aiLessonSelect.focus();
+                return;
+            }
+            targetLessonId = parseInt(elements.aiLessonSelect.value);
+            targetLessonTitle = elements.aiLessonSelect.options[elements.aiLessonSelect.selectedIndex].text;
+        }
+
+        // Disable save buttons while saving
+        if (elements.aiBtnSaveAll) elements.aiBtnSaveAll.disabled = true;
+        if (elements.aiBtnSaveAllBottom) elements.aiBtnSaveAllBottom.disabled = true;
+
+        // Bulk insert words
+        const response = await fetch(`${CONFIG.API_URL}/words/bulk`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-User-Role': user.role
+            },
+            body: JSON.stringify({
+                lesson_id: targetLessonId,
+                words: currentParsedWords
+            })
+        });
+
+        const data = await response.json();
+        if (!response.ok) throw new Error(data.error || 'Failed to save words to course');
+
+        alert(`🎉 Success! Added ${data.count} words to "${targetLessonTitle}".`);
+
+        // Reset AI Importer
+        if (elements.aiPasteTextarea) elements.aiPasteTextarea.value = '';
+        if (elements.aiNewCourseTitle) elements.aiNewCourseTitle.value = '';
+        if (elements.aiNewCourseDesc) elements.aiNewCourseDesc.value = '';
+        clearAiPreview();
+
+        // Refresh database views
+        await refreshLessonsList();
+        await refreshWordsList();
+
+        // Switch to words view so user sees newly imported list
+        switchAdminView('words');
+    } catch (e) {
+        alert(e.message);
+    } finally {
+        if (elements.aiBtnSaveAll) elements.aiBtnSaveAll.disabled = false;
+        if (elements.aiBtnSaveAllBottom) elements.aiBtnSaveAllBottom.disabled = false;
     }
 }
 
@@ -673,117 +1376,6 @@ async function handleEditUser(event) {
         }
         
         alert('User updated successfully!');
-    } catch (e) {
-        alert(e.message);
-    }
-}
-
-function openEditLessonModal(lesson) {
-    if (!elements.editLessonModal) return;
-    
-    document.getElementById('edit-lesson-id').value = lesson.id;
-    document.getElementById('edit-lesson-title').value = lesson.title;
-    document.getElementById('edit-lesson-desc').value = lesson.description || '';
-    
-    elements.editLessonModal.style.display = 'flex';
-}
-
-async function handleEditLesson(event) {
-    event.preventDefault();
-    const user = getSessionUser();
-    if (!user) return;
-    
-    const lessonId = document.getElementById('edit-lesson-id').value;
-    const title = document.getElementById('edit-lesson-title').value.trim();
-    const description = document.getElementById('edit-lesson-desc').value.trim();
-    
-    if (!title) return;
-    
-    try {
-        const response = await fetch(`${CONFIG.API_URL}/lessons/${lessonId}`, {
-            method: 'PUT',
-            headers: {
-                'Content-Type': 'application/json',
-                'X-User-Role': user.role
-            },
-            body: JSON.stringify({ title, description })
-        });
-        const data = await response.json();
-        if (!response.ok) throw new Error(data.error || 'Failed to update lesson');
-        
-        closeAdminModal('edit-lesson-modal');
-        await refreshLessonsList();
-        alert('Lesson Card updated successfully!');
-    } catch (e) {
-        alert(e.message);
-    }
-}
-
-function openEditWordModal(word) {
-    if (!elements.editWordModal) return;
-    
-    document.getElementById('edit-word-id').value = word.id;
-    document.getElementById('edit-word-lesson-id').value = word.lesson_id;
-    document.getElementById('edit-word-chinese').value = word.chinese;
-    document.getElementById('edit-word-pinyin').value = word.pinyin;
-    document.getElementById('edit-word-english').value = word.english;
-    
-    let options = [];
-    try {
-        options = typeof word.options === 'string' ? JSON.parse(word.options) : word.options;
-    } catch (e) {
-        options = [word.english, '', '', ''];
-    }
-    
-    document.getElementById('edit-word-opt-1').value = options[0] || '';
-    document.getElementById('edit-word-opt-2').value = options[1] || '';
-    document.getElementById('edit-word-opt-3').value = options[2] || '';
-    document.getElementById('edit-word-opt-4').value = options[3] || '';
-    
-    elements.editWordModal.style.display = 'flex';
-}
-
-async function handleEditWord(event) {
-    event.preventDefault();
-    const user = getSessionUser();
-    if (!user) return;
-    
-    const wordId = document.getElementById('edit-word-id').value;
-    const chinese = document.getElementById('edit-word-chinese').value.trim();
-    const pinyin = document.getElementById('edit-word-pinyin').value.trim();
-    const english = document.getElementById('edit-word-english').value.trim();
-    
-    const opt1 = document.getElementById('edit-word-opt-1').value.trim();
-    const opt2 = document.getElementById('edit-word-opt-2').value.trim();
-    const opt3 = document.getElementById('edit-word-opt-3').value.trim();
-    const opt4 = document.getElementById('edit-word-opt-4').value.trim();
-    
-    if (!chinese || !pinyin || !english || !opt1 || !opt2 || !opt3 || !opt4) {
-        alert('All fields are required.');
-        return;
-    }
-    
-    const options = [opt1, opt2, opt3, opt4];
-    if (!options.map(o => o.toLowerCase()).includes(english.toLowerCase())) {
-        alert(`Warning: The English answer ("${english}") must be one of the four options!`);
-        return;
-    }
-    
-    try {
-        const response = await fetch(`${CONFIG.API_URL}/words/${wordId}`, {
-            method: 'PUT',
-            headers: {
-                'Content-Type': 'application/json',
-                'X-User-Role': user.role
-            },
-            body: JSON.stringify({ chinese, pinyin, english, options })
-        });
-        const data = await response.json();
-        if (!response.ok) throw new Error(data.error || 'Failed to update word');
-        
-        closeAdminModal('edit-word-modal');
-        await refreshWordsList();
-        alert('Word definition updated successfully!');
     } catch (e) {
         alert(e.message);
     }

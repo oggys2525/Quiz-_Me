@@ -522,3 +522,186 @@ body:has(.admin-mode) footer {
         font-size: 1.5rem;
     }
 }
+
+/* Card Image Upload & Dropzone */
+.card-image-upload-box {
+    margin-top: 6px;
+}
+
+.dropzone-area {
+    border: 2px dashed rgba(255, 255, 255, 0.15);
+    background: rgba(255, 255, 255, 0.02);
+    border-radius: var(--radius-md);
+    padding: 16px;
+    text-align: center;
+    cursor: pointer;
+    transition: var(--transition-fast);
+    position: relative;
+    overflow: hidden;
+    min-height: 90px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.dropzone-area:hover, .dropzone-area.dragover {
+    border-color: var(--pink-primary);
+    background: rgba(255, 42, 116, 0.05);
+}
+
+.dropzone-idle {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+}
+
+.dropzone-preview-wrap {
+    position: relative;
+    width: 100%;
+    max-height: 140px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.dropzone-preview-img {
+    max-width: 100%;
+    max-height: 130px;
+    object-fit: cover;
+    border-radius: var(--radius-sm);
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.4);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.btn-clear-preview {
+    position: absolute;
+    top: -6px;
+    right: 6px;
+    background: rgba(239, 68, 68, 0.9);
+    border: none;
+    color: white;
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    font-size: 1rem;
+    font-weight: bold;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: var(--transition-fast);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.5);
+    line-height: 1;
+}
+
+.btn-clear-preview:hover {
+    background: #ef4444;
+    transform: scale(1.15);
+}
+
+/* Lesson Cards Table Thumbnails */
+.admin-lesson-thumb {
+    width: 50px;
+    height: 50px;
+    border-radius: 10px;
+    object-fit: cover;
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    background: #1e293b;
+    display: block;
+}
+
+.admin-lesson-thumb-fallback {
+    width: 50px;
+    height: 50px;
+    border-radius: 10px;
+    background: rgba(255, 42, 116, 0.1);
+    border: 1px dashed rgba(255, 42, 116, 0.3);
+    color: var(--pink-primary);
+    font-size: 1.4rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* Action button for adding words to lesson */
+.btn-action-addwords {
+    background: rgba(255, 42, 116, 0.12);
+    border: 1px solid rgba(255, 42, 116, 0.3);
+    color: var(--pink-primary);
+    padding: 6px 12px;
+    border-radius: var(--radius-sm);
+    font-size: 0.8rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: var(--transition-fast);
+    margin-right: 6px;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.btn-action-addwords:hover {
+    background: var(--pink-primary);
+    color: var(--text-white);
+    box-shadow: 0 2px 12px rgba(255, 42, 116, 0.4);
+}
+
+/* AI Smart Importer Grid Layout */
+.ai-importer-grid {
+    display: grid;
+    grid-template-columns: 1fr 1.25fr;
+    gap: 25px;
+    align-items: start;
+}
+
+.ai-input-card, .ai-preview-card {
+    height: 100%;
+}
+
+/* Quiz Option Pills in Preview */
+.options-preview-wrap {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px;
+}
+
+.quiz-opt-pill {
+    font-size: 0.72rem;
+    padding: 2px 7px;
+    border-radius: 5px;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    color: var(--text-muted);
+}
+
+.quiz-opt-pill.correct {
+    background: rgba(16, 185, 129, 0.15);
+    border-color: rgba(16, 185, 129, 0.4);
+    color: #10b981;
+    font-weight: 700;
+}
+
+/* Mobile responsive adjustments */
+@media (max-width: 992px) {
+    .ai-importer-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+@media (max-width: 768px) {
+    .admin-table {
+        min-width: 580px;
+    }
+    
+    .admin-table-container {
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+    }
+
+    .modal-card {
+        width: 94vw !important;
+        max-width: 94vw !important;
+        padding: 20px 18px !important;
+    }
+}

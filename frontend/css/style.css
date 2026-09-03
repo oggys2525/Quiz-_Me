@@ -60,3 +60,21 @@ footer span {
     display: inline-block;
     animation: float 2s ease-in-out infinite;
 }
+
+/* Prevent auto-zooming/scaling on mobile devices when input fields are clicked or focused */
+@media screen and (max-width: 768px) {
+    input[type="text"],
+    input[type="password"],
+    input[type="email"],
+    input[type="number"],
+    input[type="search"],
+    input[type="tel"],
+    input[type="url"],
+    select,
+    textarea,
+    .form-input,
+    .select-input {
+        font-size: 16px !important;
+        touch-action: manipulation;
+    }
+}

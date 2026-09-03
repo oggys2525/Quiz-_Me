@@ -2,6 +2,9 @@ from flask import Flask, request, jsonify
 from flask_cors import CORS
 import sqlite3
 import json
+import uuid
+import random
+from werkzeug.utils import secure_filename
 try:
     from database import get_db_connection, hash_password, init_db
 except ImportError:
@@ -10,6 +13,13 @@ except ImportError:
 import os
 
 frontend_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), '../frontend'))
+uploads_dir = os.path.join(frontend_dir, 'uploads')
+os.makedirs(uploads_dir, exist_ok=True)
+ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif', 'webp', 'svg'}
+
+def allowed_file(filename):
+    return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
+
 app = Flask(__name__, static_folder=frontend_dir, static_url_path='')
 # Enable CORS for all routes so frontend can communicate with backend
 CORS(app)
@@ -117,10 +127,10 @@ def get_lessons():
     conn = get_db_connection()
     cursor = conn.cursor()
     cursor.execute("""
-        SELECT l.id, l.title, l.description, COUNT(w.id) as word_count 
+        SELECT l.id, l.title, l.description, l.image_url, COUNT(w.id) as word_count 
         FROM lessons l 
         LEFT JOIN words w ON l.id = w.lesson_id 
-        GROUP BY l.id, l.title, l.description
+        GROUP BY l.id, l.title, l.description, l.image_url
         ORDER BY l.id ASC
     """)
     lessons = [dict(row) for row in cursor.fetchall()]
@@ -138,14 +148,15 @@ def create_lesson():
         
     title = data['title'].strip()
     description = data.get('description', '').strip()
+    image_url = data.get('image_url', '').strip()
     
     conn = get_db_connection()
     cursor = conn.cursor()
     try:
-        cursor.execute("INSERT INTO lessons (title, description) VALUES (?, ?)", (title, description))
+        cursor.execute("INSERT INTO lessons (title, description, image_url) VALUES (?, ?, ?)", (title, description, image_url))
         conn.commit()
         lesson_id = cursor.lastrowid
-        return jsonify({'id': lesson_id, 'title': title, 'description': description}), 201
+        return jsonify({'id': lesson_id, 'title': title, 'description': description, 'image_url': image_url}), 201
     except sqlite3.IntegrityError:
         return jsonify({'error': 'Lesson title already exists'}), 400
     finally:
@@ -416,13 +427,14 @@ def update_lesson(lesson_id):
         
     title = data['title'].strip()
     description = data.get('description', '').strip()
+    image_url = data.get('image_url', '').strip()
     
     conn = get_db_connection()
     cursor = conn.cursor()
     try:
-        cursor.execute("UPDATE lessons SET title = ?, description = ? WHERE id = ?", (title, description, lesson_id))
+        cursor.execute("UPDATE lessons SET title = ?, description = ?, image_url = ? WHERE id = ?", (title, description, image_url, lesson_id))
         conn.commit()
-        return jsonify({'id': lesson_id, 'title': title, 'description': description}), 200
+        return jsonify({'id': lesson_id, 'title': title, 'description': description, 'image_url': image_url}), 200
     except sqlite3.IntegrityError:
         return jsonify({'error': 'Lesson title already exists'}), 400
     finally:
@@ -448,6 +460,125 @@ def update_word(word_id):
     conn.commit()
     conn.close()
     return jsonify({'message': 'Word updated successfully'}), 200
+
+@app.route('/api/upload', methods=['POST'])
+def upload_file():
+    if not is_admin(request):
+        return jsonify({'error': 'Unauthorized. Admin access required.'}), 403
+    
+    file = None
+    if 'file' in request.files:
+        file = request.files['file']
+    elif 'image' in request.files:
+        file = request.files['image']
+        
+    if not file or file.filename == '':
+        return jsonify({'error': 'No file uploaded'}), 400
+        
+    if not allowed_file(file.filename):
+        return jsonify({'error': 'Invalid file type. Allowed: png, jpg, jpeg, gif, webp, svg'}), 400
+        
+    ext = file.filename.rsplit('.', 1)[1].lower()
+    unique_filename = f"card_{uuid.uuid4().hex[:10]}.{ext}"
+    save_path = os.path.join(uploads_dir, unique_filename)
+    file.save(save_path)
+    
+    file_url = f"/uploads/{unique_filename}"
+    return jsonify({'url': file_url, 'filename': unique_filename}), 201
+
+@app.route('/api/words/bulk', methods=['POST'])
+def bulk_create_words():
+    if not is_admin(request):
+        return jsonify({'error': 'Unauthorized. Admin access required.'}), 403
+        
+    data = request.json
+    if not data or 'lesson_id' not in data or 'words' not in data:
+        return jsonify({'error': 'lesson_id and words array are required'}), 400
+        
+    lesson_id = int(data['lesson_id'])
+    raw_words = data['words']
+    if not isinstance(raw_words, list) or len(raw_words) == 0:
+        return jsonify({'error': 'words must be a non-empty list'}), 400
+        
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    
+    # Verify lesson exists
+    cursor.execute("SELECT id, title FROM lessons WHERE id = ?", (lesson_id,))
+    lesson = cursor.fetchone()
+    if not lesson:
+        conn.close()
+        return jsonify({'error': 'Target lesson not found'}), 404
+        
+    # Fetch a pool of existing english answers for random distractor generation
+    cursor.execute("SELECT english FROM words LIMIT 200")
+    existing_english_pool = [row['english'] for row in cursor.fetchall() if row['english']]
+    
+    # Also gather english from the current batch
+    batch_english_pool = [str(w.get('english', '')).strip() for w in raw_words if w.get('english')]
+    combined_pool = list(set(existing_english_pool + batch_english_pool))
+    
+    inserted_words = []
+    
+    try:
+        for item in raw_words:
+            chinese = str(item.get('chinese', '')).strip()
+            pinyin = str(item.get('pinyin', '')).strip()
+            english = str(item.get('english', '')).strip()
+            
+            if not chinese or not english:
+                continue
+                
+            raw_options = item.get('options', [])
+            if not isinstance(raw_options, list):
+                raw_options = []
+            options = [str(o).strip() for o in raw_options if str(o).strip()]
+            
+            if english not in options:
+                options.append(english)
+                
+            # If fewer than 4 options, auto-generate distractors from pool
+            if len(options) < 4:
+                distractor_candidates = [ans for ans in combined_pool if ans != english and ans not in options]
+                needed = 4 - len(options)
+                if len(distractor_candidates) >= needed:
+                    picked = random.sample(distractor_candidates, needed)
+                else:
+                    picked = distractor_candidates[:]
+                    fallbacks = ['Yes', 'No', 'Good', 'Water', 'Friend', 'Book', 'Go']
+                    for fb in fallbacks:
+                        if len(picked) >= needed:
+                            break
+                        if fb != english and fb not in options and fb not in picked:
+                            picked.append(fb)
+                options.extend(picked)
+                
+            random.shuffle(options)
+            
+            cursor.execute(
+                "INSERT INTO words (lesson_id, chinese, pinyin, english, options) VALUES (?, ?, ?, ?, ?)",
+                (lesson_id, chinese, pinyin, english, json.dumps(options))
+            )
+            inserted_words.append({
+                'id': cursor.lastrowid,
+                'lesson_id': lesson_id,
+                'chinese': chinese,
+                'pinyin': pinyin,
+                'english': english,
+                'options': options
+            })
+            
+        conn.commit()
+        return jsonify({
+            'message': f"Successfully added {len(inserted_words)} words to '{lesson['title']}'",
+            'count': len(inserted_words),
+            'words': inserted_words
+        }), 201
+    except Exception as e:
+        conn.rollback()
+        return jsonify({'error': str(e)}), 500
+    finally:
+        conn.close()
 
 if __name__ == '__main__':
     # Initialize the database just in case
